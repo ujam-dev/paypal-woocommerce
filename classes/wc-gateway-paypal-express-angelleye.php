@@ -1026,6 +1026,15 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
         );
         $PayPal = new PayPal($PayPalConfig);
 
+        $reqconfirmshipping = '';
+        $noshipping = '';
+        $itemCategory = '';
+        if($this->check_cart_digital()){
+            $reqconfirmshipping = 0;
+            $noshipping = 1;
+            $itemCategory = 'Digital';
+        }
+
         /*
          * Prepare PayPal request data.
          */
@@ -1037,8 +1046,8 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             'callback' => '', 							// URL to which the callback request from PayPal is sent.  Must start with https:// for production.
             'callbacktimeout' => '', 					// An override for you to request more or less time to be able to process the callback request and response.  Acceptable range for override is 1-6 seconds.  If you specify greater than 6 PayPal will use default value of 3 seconds.
             'callbackversion' => '', 					// The version of the Instant Update API you're using.  The default is the current version.
-            'reqconfirmshipping' => '', 				// The value 1 indicates that you require that the customer's shipping address is Confirmed with PayPal.  This overrides anything in the account profile.  Possible values are 1 or 0.
-            'noshipping' => '', 						// The value 1 indiciates that on the PayPal pages, no shipping address fields should be displayed.  Maybe 1 or 0.
+            'reqconfirmshipping' => $reqconfirmshipping, 				// The value 1 indicates that you require that the customer's shipping address is Confirmed with PayPal.  This overrides anything in the account profile.  Possible values are 1 or 0.
+            'noshipping' => $noshipping, 						// The value 1 indiciates that on the PayPal pages, no shipping address fields should be displayed.  Maybe 1 or 0.
             'allownote' => '', 							// The value 1 indiciates that the customer may enter a note to the merchant on the PayPal page during checkout.  The note is returned in the GetExpresscheckoutDetails response and the DoExpressCheckoutPayment response.  Must be 1 or 0.
             'addroverride' => '', 						// The value 1 indiciates that the PayPal pages should display the shipping address set by you in the SetExpressCheckout request, not the shipping address on file with PayPal.  This does not allow the customer to edit the address here.  Must be 1 or 0.
             'localecode' => substr(WPLANG, -2), 						// Locale of pages displayed by PayPal during checkout.  Should be a 2 character country code.  You can retrive the country code by passing the country name into the class' GetCountryCode() function.
@@ -1205,7 +1214,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 'qty' => $qty, 								// Item qty on order.  Any positive integer.
                 'taxamt' => '', 							// Item sales tax
                 'itemurl' => '', 							// URL for the item.
-                'itemcategory' => '', 						// One of the following values:  Digital, Physical
+                'itemcategory' => $itemCategory, 						// One of the following values:  Digital, Physical
                 'itemweightvalue' => '', 					// The weight value of the item.
                 'itemweightunit' => '', 					// The weight unit of the item.
                 'itemheightvalue' => '', 					// The height value of the item.
@@ -1237,7 +1246,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 'qty' => 1, // Item qty on order. Any positive integer.
                 'taxamt' => '', // Item sales tax
                 'itemurl' => '', // URL for the item.
-                'itemcategory' => '', // One of the following values: Digital, Physical
+                'itemcategory' => $itemCategory, // One of the following values: Digital, Physical
                 'itemweightvalue' => '', // The weight value of the item.
                 'itemweightunit' => '', // The weight unit of the item.
                 'itemheightvalue' => '', // The height value of the item.
@@ -1935,5 +1944,24 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             }
             echo "<div class='clear'></div></div>";
         }
+    }
+    function check_cart_digital(){
+        $pp_settings = get_option( 'woocommerce_paypal_express_settings' );
+        $return = false;
+        if($pp_settings['digital_good'] == 'yes'){
+            $return = true;
+            if(sizeof(WC()->cart->get_cart()) > 0)
+            {
+                foreach(WC()->cart->get_cart() as $cart_item_key => $values){
+                    $vitural = get_post_meta($values['product_id'],'_virtual',true);
+                    $download = get_post_meta($values['product_id'],'_downloadable',true);
+                    if($download == 'no' && $vitural == 'no'){
+                        $return = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return $return;
     }
 }
