@@ -430,14 +430,14 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
                 {
                     // Bill Me Later button
                     $bml_button_markup = '<div id="paypal_ec_bml_button">';
-                    $bml_button_markup .= '<a class="paypal_checkout_button" href="' . add_query_arg( 'use_bml', 'true', add_query_arg( 'pp_action', 'expresscheckout', add_query_arg( 'wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url( '/' ) ) ) ) . '" >';
+                    $bml_button_markup .= '<div class="paypal_bml_button"><a class="paypal_checkout_button" href="' . add_query_arg( 'use_bml', 'true', add_query_arg( 'pp_action', 'expresscheckout', add_query_arg( 'wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url( '/' ) ) ) ) . '" >';
                     $bml_button_markup .= "<img src='https://www.paypalobjects.com/webstatic/en_US/btn/btn_bml_SM.png' width='150' alt='Check out with PayPal Bill Me Later'/>";
-                    $bml_button_markup .= '</a>';
+                    $bml_button_markup .= '</a></div>';
 
                     // Marketing Message
-                    $bml_button_markup .= '<a target="_blank" href="https://www.securecheckout.billmelater.com/paycapture-content/fetch?hash=AU826TU8&content=/bmlweb/ppwpsiw.html" >';
+                    $bml_button_markup .= '<div class="paypal_mkt_button"><a target="_blank" href="https://www.securecheckout.billmelater.com/paycapture-content/fetch?hash=AU826TU8&content=/bmlweb/ppwpsiw.html" >';
                     $bml_button_markup .= "<img src='https://www.paypalobjects.com/webstatic/en_US/btn/btn_bml_text.png' width='150' />";
-                    $bml_button_markup .= '</a>';
+                    $bml_button_markup .= '</a></div>';
                     $bml_button_markup .= '</div>';
 
                     echo $bml_button_markup;
