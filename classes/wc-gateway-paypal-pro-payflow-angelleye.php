@@ -41,6 +41,12 @@ class WC_Gateway_PayPal_Pro_PayFlow_AngellEYE extends WC_Payment_Gateway {
 		$this->paypal_password 		= $this->settings['paypal_password'];
 		$this->paypal_user     		= ! empty( $this->settings['paypal_user'] ) ? $this->settings['paypal_user'] : $this->paypal_vendor;
 
+        //Paypal Sandbox Info
+        $this->sandbox_paypal_vendor   	= $this->settings['sandbox_paypal_vendor'];
+        $this->sandbox_paypal_partner  	= $this->settings['sandbox_paypal_partner'];
+        $this->sandbox_paypal_password 	= $this->settings['sandbox_paypal_password'];
+        $this->sandbox_paypal_user     	= $this->settings['sandbox_paypal_user'];
+
 		$this->testmode        		= $this->settings['testmode'];
 		$this->debug		   		= isset( $this->settings['debug'] ) && $this->settings['debug'] == 'yes' ? true : false;
 		$this->error_email_notify   = isset($this->settings['error_email_notify']) && $this->settings['error_email_notify'] == 'yes' ? true : false;
@@ -619,7 +625,12 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
      * Payment form on checkout page
      */
 	function payment_fields() {
-
+        if($this->testmode == 'yes' && (empty($this->sandbox_paypal_vendor) || empty($this->sandbox_paypal_partner) || empty($this->sandbox_paypal_password) || empty($this->sandbox_paypal_user ) ) ){
+            return;
+        }
+        if($this->testmode == 'no' && (empty($this->paypal_vendor) || empty($this->paypal_partner) || empty($this->paypal_password) || empty($this->paypal_user ) ) ){
+            return;
+        }
 		if ( $this->description ) {
 			echo '<p>';
 			if ( $this->testmode == 'yes' )

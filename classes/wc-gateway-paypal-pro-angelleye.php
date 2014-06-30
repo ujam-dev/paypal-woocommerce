@@ -90,6 +90,9 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
             $this->api_password 	= $this->settings['sandbox_api_password'];
             $this->api_signature 	= $this->settings['sandbox_api_signature'];
         }
+        $this->sandbox_api_username 	= $this->settings['sandbox_api_username'];
+        $this->sandbox_api_password 	= $this->settings['sandbox_api_password'];
+        $this->sandbox_api_signature 	= $this->settings['sandbox_api_signature'];
         // Maestro
         if ( ! $this->enable_3dsecure ) {
             unset( $this->avaiable_card_types['GB']['Maestro'] );
@@ -314,6 +317,12 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
      * Payment form on checkout page
      */
     function payment_fields() {
+        if($this->testmode == 'yes' && (empty($this->sandbox_api_username) || empty($this->sandbox_api_password) || empty($this->sandbox_api_signature ) ) ){
+            return;
+        }
+        if($this->testmode == 'no' && (empty($this->api_username) || empty($this->api_password) || empty($this->api_signature ) )  ){
+            return;
+        }
         $available_cards = $this->avaiable_card_types[WC()->countries->get_base_country()];
         ?>
         <?php if ($this->testmode=='yes') : ?><p><?php _e('TEST MODE/SANDBOX ENABLED', 'paypal-for-woocommerce'); ?></p><?php endif; ?>

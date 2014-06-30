@@ -171,7 +171,18 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
             }
             $user_id = $current_user->ID;
             /* If user clicks to ignore the notice, add that to their user meta */
-            $notices = array('ignore_pp_ssl', 'ignore_pp_sandbox', 'ignore_pp_woo', 'ignore_pp_check');
+            $notices = array(
+                'ignore_pp_ssl',
+                'ignore_pp_sandbox',
+                'ignore_pp_woo',
+                'ignore_pp_check',
+                'ignore_pp_check_api',
+                'ignore_pp_check_sandbox_api',
+                'ignore_pr_sandbox_api',
+                'ignore_pr_api',
+                'ignore_pf_sandbox_api',
+                'ignore_pf_api',
+            );
             foreach ($notices as $notice)
                 if ( isset($_GET[$notice]) && '0' == $_GET[$notice] ) {
                     add_user_meta($user_id, $notice, 'true', true);
@@ -198,6 +209,20 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
                     $testmodes_str = implode(", ", $testmodes);
                     echo '<div class="error"><p>' . sprintf(__('WooCommerce PayPal Payments ( %s ) is currently running in Sandbox mode and will NOT process any actual payments. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), $testmodes_str, '"'.add_query_arg("ignore_pp_sandbox",0).'"',  __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
                 }
+                if (@$pp_pro['enabled']=='yes' && @$pp_pro['testmode']=='yes' && !get_user_meta($user_id, 'ignore_pr_sandbox_api') && (@$pp_pro['sandbox_api_username'] == '' || @$pp_pro['sandbox_api_password'] == '' || @$pp_pro['sandbox_api_signature'] == '')){
+                    echo '<div class="error"><p>' . sprintf(__('Please enter all sandbox API field to use Paypal Pro Checkout. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pr_sandbox_api",0).'"',  __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
+                }
+                if (@$pp_pro['enabled']=='yes' && @$pp_pro['testmode']=='no' && !get_user_meta($user_id, 'ignore_pr_api') && (@$pp_pro['api_username'] == '' || @$pp_pro['api_password'] == '' || @$pp_pro['api_signature'] == '')){
+                    echo '<div class="error"><p>' . sprintf(__('Please enter all API field to use Paypal Pro Checkout. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pr_api",0).'"',  __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
+                }
+
+                if (@$pp_payflow['enabled']=='yes' && @$pp_payflow['testmode']=='yes' && !get_user_meta($user_id, 'ignore_pf_sandbox_api') && (@$pp_payflow['sandbox_paypal_vendor'] == '' || @$pp_payflow['sandbox_paypal_password'] == '' || @$pp_payflow['sandbox_paypal_user'] == '' || @$pp_payflow['sandbox_paypal_partner'] == '')){
+                    echo '<div class="error"><p>' . sprintf(__('Please enter all sandbox API field to use Paypal Flow Checkout. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pf_sandbox_api",0).'"',  __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
+                }
+                if (@$pp_payflow['enabled']=='yes' && @$pp_payflow['testmode']=='no' && !get_user_meta($user_id, 'ignore_pf_api') && (@$pp_payflow['paypal_vendor'] == '' || @$pp_payflow['paypal_password'] == '' || @$pp_payflow['paypal_user'] == '' || @$pp_payflow['paypal_partner'] == '') ){
+                    echo '<div class="error"><p>' . sprintf(__('Please enter all API field to use Paypal Flow Checkout. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pf_api",0).'"',  __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
+                }
+
             } elseif (@$pp_settings['enabled']=='yes'){
                 if (@$pp_settings['testmode']=='yes' && !get_user_meta($user_id, 'ignore_pp_sandbox')) {
                     echo '<div class="error"><p>' . sprintf(__('WooCommerce PayPal Express is currently running in Sandbox mode and will NOT process any actual payments. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pp_sandbox",0).'"', __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
@@ -206,10 +231,18 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
             if(@$pp_settings['enabled']=='yes' && @$pp_standard['enabled']=='yes' && !get_user_meta($user_id, 'ignore_pp_check')){
                 echo '<div class="error"><p>' . sprintf(__('You currently have both PayPal (standard) and Express Checkout enabled.  It is recommended that you disable the standard PayPal from <a href="'.get_admin_url().'admin.php?page=wc-settings&tab=checkout&section=wc_gateway_paypal">the settings page</a> when using Express Checkout. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pp_check",0).'"', __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
             }
-
+            if(@$pp_settings['enabled']=='yes'){
+                if(@$pp_settings['testmode'] == 'yes' && !get_user_meta($user_id, 'ignore_pp_check_sandbox_api') && (@$pp_settings['sandbox_api_username'] == '' || @$pp_settings['sandbox_api_password'] == '' || @$pp_settings['sandbox_api_signature'] == '')){
+                    echo '<div class="error"><p>' . sprintf(__('Please enter all sandbox API field to use Paypal Express Checkout. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pp_check_sandbox_api",0).'"',  __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
+                }
+                if(@$pp_settings['testmode'] == 'no' && !get_user_meta($user_id, 'ignore_pp_check_api') && (@$pp_settings['api_username'] == '' || @$pp_settings['api_password']== '' || @$pp_settings['api_signature'] == '')){
+                    echo '<div class="error"><p>' . sprintf(__('Please enter all API field to use Paypal Express Checkout. | <a href=%s>%s</a>', 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pp_check_api",0).'"',  __("Hide this notice", 'paypal-for-woocommerce')) . '</p></div>';
+                }
+            }
             if ( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) && !get_user_meta($user_id, 'ignore_pp_woo')) {
                 echo '<div class="error"><p>' . sprintf( __("WooCommerce PayPal Payments requires WooCommerce plugin to work normally. Please activate it or install it from <a href='http://wordpress.org/plugins/woocommerce/' target='_blank'>here</a>. | <a href=%s>%s</a>", 'paypal-for-woocommerce'), '"'.add_query_arg("ignore_pp_woo",0).'"', __("Hide this notice", 'paypal-for-woocommerce') ) . '</p></div>';
             }
+
         }
 
         //init function
@@ -392,6 +425,11 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
             global $pp_settings, $post;
             if (!empty($pp_settings['show_on_product_page']) && $pp_settings['show_on_product_page']=='yes')
 			{
+                if($pp_settings['testmode'] == 'yes' && (empty($pp_settings['sandbox_api_username']) || empty($pp_settings['sandbox_api_password']) || empty($pp_settings['sandbox_api_signature'] ) ) ){
+                    return;
+                }elseif($pp_settings['testmode'] == 'no' && (empty($pp_settings['api_username']) || empty($pp_settings['api_password']) || empty($pp_settings['api_signature'] ) ) ){
+                    return;
+                }
                 $_product = get_product($post->ID);
                 $hide = '';
                 if($_product->product_type == 'variation' || 

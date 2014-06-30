@@ -1884,13 +1884,23 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             $pp_payflow = get_option('woocommerce_paypal_pro_payflow_settings');
             if (empty($payment_gateways) && (@$pp_pro['enabled']=='yes' || @$pp_payflow['enabled']=='yes'))
             {
-                echo '<a class="paypal_checkout_button button alt" href="#" onclick="jQuery(\'.checkout-button\').click(); return false;">' . __('Pay with Credit Card', 'paypal-for-woocommerce') .'</a> &nbsp;';
+                if (@$pp_pro['testmode']=='yes' && (@$pp_pro['sandbox_api_username'] == '' || @$pp_pro['sandbox_api_password'] == '' || @$pp_pro['sandbox_api_signature'] == '')){
+                }elseif (@$pp_pro['testmode']=='no' && (@$pp_pro['api_username'] == '' || @$pp_pro['api_password'] == '' || @$pp_pro['api_signature'] == '')){
+                }else{
+                    echo '<a class="paypal_checkout_button button alt" href="#" onclick="jQuery(\'.checkout-button\').click(); return false;">' . __('Pay with Credit Card', 'paypal-for-woocommerce') .'</a> &nbsp;';
+                }
             }
 
             echo '<div class="clear"></div>';
 			
 			if (@$pp_settings['enabled']=='yes' && 0 < WC()->cart->total && $pp_settings['show_on_cart']=='yes' )
 			{
+                if($pp_settings['testmode'] == 'yes' && (empty($pp_settings['sandbox_api_username']) || empty($pp_settings['sandbox_api_password']) || empty($pp_settings['sandbox_api_signature'] ) ) ){
+                    return;
+                }
+                if($pp_settings['testmode'] == 'no' && (empty($pp_settings['api_username']) || empty($pp_settings['api_password']) || empty($pp_settings['api_signature'] ) ) ){
+                    return;
+                }
             	echo '<div class="paypal_box_button">';
             	if (empty($pp_settings['checkout_with_pp_button_type'])) $pp_settings['checkout_with_pp_button_type']='paypalimage';
             	switch($pp_settings['checkout_with_pp_button_type']){
