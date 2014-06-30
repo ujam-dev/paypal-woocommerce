@@ -600,6 +600,8 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
 					$message .= __( 'Error Code: ' ,'paypal-for-woocommerce' ) . $PayPalResult['RESULT'] ."\n";
 					$message .= __( 'Detailed Error Message: ' , 'paypal-for-woocommerce') . $PayPalResult['RESPMSG'];
 					$message .= isset($PayPalResult['PREFPSMSG']) && $PayPalResult['PREFPSMSG'] != '' ? ' - ' . $PayPalResult['PREFPSMSG'] ."\n" : "\n";
+                    $message .= __( 'You can notification for me if this error happening with infor: ' , 'paypal-for-woocommerce') ."\n";
+                    $message .= __( 'URL www.angelleye.com/support-ticket: ' , 'paypal-for-woocommerce') ."\n";
 	
 					wp_mail($admin_email, "PayPal Pro Error Notification",$message);
 				}

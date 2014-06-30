@@ -994,6 +994,8 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
 				$message .= __( "DoDirectPayment API call failed." , "paypal-for-woocommerce" )."\n\n";
 				$message .= __( 'Error Code: ' ,'paypal-for-woocommerce' ) . $error_code."\n";
 				$message .= __( 'Detailed Error Message: ' , 'paypal-for-woocommerce') . $long_message ."\n";
+				$message .= __( 'You can notification for me if this error happening with infor: ' , 'paypal-for-woocommerce') ."\n";
+				$message .= __( 'URL www.angelleye.com/support-ticket: ' , 'paypal-for-woocommerce') ."\n";
 
 				wp_mail($admin_email, "PayPal Pro Error Notification",$message);
 			}
