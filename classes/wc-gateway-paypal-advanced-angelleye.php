@@ -249,7 +249,7 @@ class WC_Paypal_Advanced extends WC_Payment_Gateway {
 				'ORIGID'                           => $_POST['PNREF'],
 				'TENDER'                           => 'C',
 				'TRXTYPE'                          => 'I',
-				'BUTTONSOURCE'                     => 'WooThemes_Cart'
+				'BUTTONSOURCE'                     => 'AngellEYE_SP_WooCommerce'
 			);
 
 			$postData = ''; //stores the post data string
@@ -353,7 +353,7 @@ class WC_Paypal_Advanced extends WC_Payment_Gateway {
 			'SHIPTOCITY['.strlen($order->shipping_city).']'  => $order->shipping_city,
 			'SHIPTOZIP'   => $order->shipping_postcode,
 			'SHIPTOCOUNTRY['.strlen($order->shipping_country).']' => $order->shipping_country,
-			'BUTTONSOURCE' => 'WooThemes_Cart',
+			'BUTTONSOURCE' => 'AngellEYE_SP_WooCommerce',
 			'RETURNURL['.strlen($this->relay_response_url).']' => $this->relay_response_url,
 			'ERRORURL['.strlen($this->relay_response_url).']' => $this->relay_response_url,
 			'SILENTPOSTURL['.strlen($this->relay_response_url).']' => $this->relay_response_url,
