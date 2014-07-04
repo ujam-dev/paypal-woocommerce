@@ -434,6 +434,25 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
 						echo '<div class="clear"></div>';
                         break;
                 }
+                /**
+                 * Displays the Bill Me Later checkout button if enabled in EC settings.
+                 */
+                if($pp_settings['show_bill_me_later'] == 'yes')
+                {
+                    // Bill Me Later button
+                    $bml_button_markup = '<div id="paypal_ec_bml_button">';
+                    $bml_button_markup .= '<a class="paypal_checkout_button" href="' . add_query_arg( 'use_bml', 'true', add_query_arg( 'pp_action', 'expresscheckout', add_query_arg( 'wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url( '/' ) ) ) ) . '" >';
+                    $bml_button_markup .= "<img src='https://www.paypalobjects.com/webstatic/en_US/btn/btn_bml_SM.png' width='150' alt='Check out with PayPal Bill Me Later'/>";
+                    $bml_button_markup .= '</a>';
+
+                    // Marketing Message
+                    $bml_button_markup .= '<a target="_blank" href="https://www.securecheckout.billmelater.com/paycapture-content/fetch?hash=AU826TU8&content=/bmlweb/ppwpsiw.html" >';
+                    $bml_button_markup .= "<img src='https://www.paypalobjects.com/webstatic/en_US/btn/btn_bml_text.png' width='150' />";
+                    $bml_button_markup .= '</a>';
+                    $bml_button_markup .= '</div>';
+
+                    echo $bml_button_markup;
+                }
             }
 
         }
