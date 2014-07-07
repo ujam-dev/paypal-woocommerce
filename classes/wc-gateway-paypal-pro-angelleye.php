@@ -994,10 +994,20 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
 			// Notice admin if has any issue from PayPal
 			if($this->error_email_notify)
 			{
+                $user = get_user_by( 'ID', 1 );
 				$admin_email = get_option("admin_email");
-				$message .= __( "DoDirectPayment API call failed." , "paypal-for-woocommerce" )."\n\n";
+				$message = __( "DoDirectPayment API call failed." , "paypal-for-woocommerce" )."\n\n";
 				$message .= __( 'Error Code: ' ,'paypal-for-woocommerce' ) . $error_code."\n";
 				$message .= __( 'Detailed Error Message: ' , 'paypal-for-woocommerce') . $long_message ."\n";
+                $arr_params = array(
+                    'firstname'     => $user->first_name,
+                    'lastname'      => $user->last_name,
+                    'companyname'   => get_bloginfo('name'),
+                    'email'         => $admin_email,
+                    'website'       => home_url(),
+                    'productname'   => 'PayPal for WooCommerce',
+                );
+                $message .= sprintf('<a href="%s">%s</a>', add_query_arg( $arr_params, 'http://www.angelleye.com/support-ticket/'),_( 'Click here for support ' , 'paypal-for-woocommerce')) ."\n";
 
 				wp_mail($admin_email, "PayPal Pro Error Notification",$message);
 			}
