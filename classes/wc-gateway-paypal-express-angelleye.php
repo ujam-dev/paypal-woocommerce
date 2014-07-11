@@ -28,17 +28,17 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
         //$this->hide_checkout_button    = $this->settings['hide_checkout_button'];
         $this->show_on_checkout        = $this->settings['show_on_checkout'];
         $this->paypal_account_optional = $this->settings['paypal_account_optional'];
-		$this->error_display_type 	   = isset($this->settings['error_display_type']) ? $this->settings['error_display_type'] : '';
+        $this->error_display_type 	   = isset($this->settings['error_display_type']) ? $this->settings['error_display_type'] : '';
         $this->landing_page            = isset($this->settings['landing_page']) ? $this->settings['landing_page'] : '';
-		$this->show_bill_me_later	   = isset($this->settings['show_bill_me_later']) ? $this->settings['show_bill_me_later'] : '';
-		$this->brand_name	  		   = isset($this->settings['brand_name']) ? $this->settings['brand_name'] : '';
-		$this->customer_service_number = isset($this->settings['customer_service_number']) ? $this->settings['customer_service_number'] : '';
-		$this->gift_wrap_enabled	   = isset($this->settings['gift_wrap_enabled']) ? $this->settings['gift_wrap_enabled'] : '';
-		$this->gift_message_enabled	   = isset($this->settings['gift_message_enabled']) ? $this->settings['gift_message_enabled'] : '';
-		$this->gift_receipt_enabled	   = isset($this->settings['gift_receipt_enabled']) ? $this->settings['gift_receipt_enabled'] : '';
-		$this->gift_wrap_name		   = isset($this->settings['gift_wrap_name']) ? $this->settings['gift_wrap_name'] : '';
-		$this->gift_wrap_amount		   = isset($this->settings['gift_wrap_amount']) ? $this->settings['gift_wrap_amount'] : '';
-		
+        $this->show_bill_me_later	   = isset($this->settings['show_bill_me_later']) ? $this->settings['show_bill_me_later'] : '';
+        $this->brand_name	  		   = isset($this->settings['brand_name']) ? $this->settings['brand_name'] : '';
+        $this->customer_service_number = isset($this->settings['customer_service_number']) ? $this->settings['customer_service_number'] : '';
+        $this->gift_wrap_enabled	   = isset($this->settings['gift_wrap_enabled']) ? $this->settings['gift_wrap_enabled'] : '';
+        $this->gift_message_enabled	   = isset($this->settings['gift_message_enabled']) ? $this->settings['gift_message_enabled'] : '';
+        $this->gift_receipt_enabled	   = isset($this->settings['gift_receipt_enabled']) ? $this->settings['gift_receipt_enabled'] : '';
+        $this->gift_wrap_name		   = isset($this->settings['gift_wrap_name']) ? $this->settings['gift_wrap_name'] : '';
+        $this->gift_wrap_amount		   = isset($this->settings['gift_wrap_amount']) ? $this->settings['gift_wrap_amount'] : '';
+
         /*
         ' Define the PayPal Redirect URLs.
         ' 	This is the URL that the buyer is first sent to do authorize payment with their paypal account
@@ -160,7 +160,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 });
             });
         </script>
-        <?php
+    <?php
     }
 
     public function get_confirm_order($order){
@@ -239,8 +239,8 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 'title' => __( 'PayPal Sandbox', 'paypal-for-woocommerce' ),
                 'type' => 'checkbox',
                 'label' => __( 'Enable PayPal Sandbox', 'paypal-for-woocommerce' ),
-                'default' => 'yes', 
-				'description' => __( 'The sandbox is PayPal\'s test environment and is only for use with sandbox accounts created within your <a href="http://developer.paypal.com" target="_blank">PayPal developer account</a>.','paypal-for-woocommerce')
+                'default' => 'yes',
+                'description' => __( 'The sandbox is PayPal\'s test environment and is only for use with sandbox accounts created within your <a href="http://developer.paypal.com" target="_blank">PayPal developer account</a>.','paypal-for-woocommerce')
             ),
             'debug' => array(
                 'title' => __( 'Debug', 'paypal-for-woocommerce' ),
@@ -295,17 +295,17 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 'title' => __( 'Product Page', 'paypal-for-woocommerce' ),
                 'type' => 'checkbox',
                 'label' => __( 'Show the Express Checkout button on product detail pages.', 'paypal-for-woocommerce' ),
-                'default' => 'no', 
-				'description' => __('Allows customers to checkout using PayPal directly from a product page.','paypal-for-woocommerce')
+                'default' => 'no',
+                'description' => __('Allows customers to checkout using PayPal directly from a product page.','paypal-for-woocommerce')
             ),
             'paypal_account_optional' => array(
                 'title' => __( 'PayPal Account Optional', 'paypal-for-woocommerce' ),
                 'type' => 'checkbox',
                 'label' => __( 'Allow customers to checkout without a PayPal account using their credit card.', 'paypal-for-woocommerce' ),
-                'default' => 'no', 
-				'description' => __('PayPal Account Optional must be turned on in your PayPal account profile under Website Preferences.','paypal-for-woocommerce')
+                'default' => 'no',
+                'description' => __('PayPal Account Optional must be turned on in your PayPal account profile under Website Preferences.','paypal-for-woocommerce')
             ),
-			'landing_page' => array(
+            'landing_page' => array(
                 'title' => __( 'Landing Page', 'paypal-for-woocommerce' ),
                 'type' => 'select',
                 'description' => __( 'Type of PayPal page to display as default. PayPal Account Optional must be checked for this option to be used.', 'paypal-for-woocommerce'  ),
@@ -313,7 +313,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                     'billing' => __( 'Billing' , 'paypal-for-woocommerce' ) ),
                 'default' => 'login',
             ),
-			'error_display_type' => array(
+            'error_display_type' => array(
                 'title' => __( 'Error Display Type', 'paypal-for-woocommerce' ),
                 'type' => 'select',
                 'label' => __( 'Display detailed or generic errors', 'paypal-for-woocommerce' ),
@@ -322,55 +322,55 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                     'detailed' => __( 'Detailed' , 'paypal-for-woocommerce' ),
                     'generic' => __( 'Generic' , 'paypal-for-woocommerce' )
                 ),
-				'description' => __( 'Detailed displays actual errors returned from PayPal.  Generic displays general errors that do not reveal details 
+                'description' => __( 'Detailed displays actual errors returned from PayPal.  Generic displays general errors that do not reveal details
 									and helps to prevent fraudulant activity on your site.' , 'paypal-for-woocommerce' )
             ),
-			'show_bill_me_later' => array(
-					'title' => __( 'Enable Bill Me Later', 'paypal-for-woocommerce' ),
-					'type' => 'checkbox',
-					'label' => __( 'Show the Bill Me Later button next to the Express Checkout button.', 'paypal-for-woocommerce' ),
-					'default' => 'yes'
-				),
-			'brand_name' => array(
+            'show_bill_me_later' => array(
+                'title' => __( 'Enable Bill Me Later', 'paypal-for-woocommerce' ),
+                'type' => 'checkbox',
+                'label' => __( 'Show the Bill Me Later button next to the Express Checkout button.', 'paypal-for-woocommerce' ),
+                'default' => 'yes'
+            ),
+            'brand_name' => array(
                 'title' => __( 'Brand Name', 'paypal-for-woocommerce' ),
                 'type' => 'text',
                 'description' => __( 'This controls what users see as the brand / company name on PayPal review pages.', 'paypal-for-woocommerce' ),
                 'default' => __( get_bloginfo('name'), 'paypal-for-woocommerce' )
             ),
-			'customer_service_number' => array(
+            'customer_service_number' => array(
                 'title' => __( 'Customer Service Number', 'paypal-for-woocommerce' ),
                 'type' => 'text',
                 'description' => __( 'This controls what users see for your customer service phone number on PayPal review pages.', 'paypal-for-woocommerce' ),
                 'default' => ''
             ),
-			'gift_wrap_enabled' => array(
+            'gift_wrap_enabled' => array(
                 'title' => __( 'Gift Wrap', 'paypal-for-woocommerce' ),
                 'type' => 'checkbox',
                 'label' => __( 'Enables the gift wrap options for buyers.', 'paypal-for-woocommerce' ),
-                'default' => 'no', 
-				'description' => __( 'This will display a gift wrap option to buyers during checkout based on the following Gift Wrap settings.' , 'paypal-for-woocommerce' )
+                'default' => 'no',
+                'description' => __( 'This will display a gift wrap option to buyers during checkout based on the following Gift Wrap settings.' , 'paypal-for-woocommerce' )
             ),
-			'gift_message_enabled' => array(
+            'gift_message_enabled' => array(
                 'title' => __( 'Gift Message', 'paypal-for-woocommerce' ),
                 'type' => 'checkbox',
                 'label' => __( 'Enables the gift message widget on PayPal pages.', 'paypal-for-woocommerce' ),
-                'default' => 'no', 
-				'description' => __( 'This will allow buyers to enter a message they would like to include with the item as a gift.' , 'paypal-for-woocommerce' )
+                'default' => 'no',
+                'description' => __( 'This will allow buyers to enter a message they would like to include with the item as a gift.' , 'paypal-for-woocommerce' )
             ),
-			'gift_receipt_enabled' => array(
+            'gift_receipt_enabled' => array(
                 'title' => __( 'Gift Receipt', 'paypal-for-woocommerce' ),
                 'type' => 'checkbox',
                 'label' => __( 'Enables the gift receipt widget on PayPal pages.', 'paypal-for-woocommerce' ),
-                'default' => 'no', 
-				'description' => __( 'This will allow buyers to choose whether or not to include a gift receipt in the order.' , 'paypal-for-woocommerce' )
+                'default' => 'no',
+                'description' => __( 'This will allow buyers to choose whether or not to include a gift receipt in the order.' , 'paypal-for-woocommerce' )
             ),
-			'gift_wrap_name' => array(
+            'gift_wrap_name' => array(
                 'title' => __( 'Gift Wrap Name', 'paypal-for-woocommerce' ),
                 'type' => 'text',
                 'description' => __( 'Label for the gift wrap option on PayPal pages, such as "Box with ribbon"', 'paypal-for-woocommerce' ),
                 'default' => __('Box with ribbon', 'paypal-for-woocommerce' )
             ),
-			'gift_wrap_amount' => array(
+            'gift_wrap_amount' => array(
                 'title' => __( 'Gift Wrap Amount', 'paypal-for-woocommerce' ),
                 'type' => 'text',
                 'description' => __( 'Amount to be charged to the buyer for adding the gift wrap option.', 'paypal-for-woocommerce' ),
@@ -402,23 +402,23 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             )*/
         );
     }
-	
+
     /**
      *  Checkout Message
      */
     function checkout_message()
-	{
+    {
         global $pp_settings;
 
         if(WC()->cart->total > 0)
-		{
+        {
             $payment_gateways = WC()->payment_gateways->get_available_payment_gateways();
             // Pay with Credit Card
 
             unset($payment_gateways['paypal_pro']);
             unset($payment_gateways['paypal_pro_payflow']);
             echo '<div id="checkout_paypal_message" class="woocommerce-info info">';
-			echo '<div id="paypal_box_button">';
+            echo '<div id="paypal_box_button">';
             if (empty($pp_settings['checkout_with_pp_button_type'])) $pp_settings['checkout_with_pp_button_type']='paypalimage';
             switch($pp_settings['checkout_with_pp_button_type']){
                 case "textbutton":
@@ -447,35 +447,35 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                     break;
             }
             //echo '<div id="paypal_ec_button">';
-			//echo '<a class="paypal_checkout_button" href="' . add_query_arg( 'pp_action', 'expresscheckout', add_query_arg( 'wc-api', get_class(), home_url( '/' ) ) ) . '">';
+            //echo '<a class="paypal_checkout_button" href="' . add_query_arg( 'pp_action', 'expresscheckout', add_query_arg( 'wc-api', get_class(), home_url( '/' ) ) ) . '">';
             //echo "<img src='https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif' width='150' alt='Check out with PayPal'/>";
             //echo '</a>';
-			//echo '</div>';
-			/**
-			 * Displays the Bill Me Later checkout button if enabled in EC settings.
-			 */
-			if($this->show_bill_me_later == 'yes') 
-			{
-				// Bill Me Later button
-				$bml_button_markup = '<div id="paypal_ec_bml_button">';
-				$bml_button_markup .= '<a class="paypal_checkout_button" href="' . add_query_arg( 'use_bml', 'true', add_query_arg( 'pp_action', 'expresscheckout', add_query_arg( 'wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url( '/' ) ) ) ) . '" >';
-				$bml_button_markup .= "<img src='https://www.paypalobjects.com/webstatic/en_US/btn/btn_bml_SM.png' width='150' alt='Check out with PayPal Bill Me Later'/>";
-				$bml_button_markup .= '</a>';
-	
-				// Marketing Message
-				$bml_button_markup .= '<a target="_blank" href="https://www.securecheckout.billmelater.com/paycapture-content/fetch?hash=AU826TU8&content=/bmlweb/ppwpsiw.html" >';
-				$bml_button_markup .= "<img src='https://www.paypalobjects.com/webstatic/en_US/btn/btn_bml_text.png' width='150' />";
-				$bml_button_markup .= '</a>';
-				$bml_button_markup .= '</div>';
-				echo $bml_button_markup;
-			}
+            //echo '</div>';
+            /**
+             * Displays the Bill Me Later checkout button if enabled in EC settings.
+             */
+            if($this->show_bill_me_later == 'yes')
+            {
+                // Bill Me Later button
+                $bml_button_markup = '<div id="paypal_ec_bml_button">';
+                $bml_button_markup .= '<a class="paypal_checkout_button" href="' . add_query_arg( 'use_bml', 'true', add_query_arg( 'pp_action', 'expresscheckout', add_query_arg( 'wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url( '/' ) ) ) ) . '" >';
+                $bml_button_markup .= "<img src='https://www.paypalobjects.com/webstatic/en_US/btn/btn_bml_SM.png' width='150' alt='Check out with PayPal Bill Me Later'/>";
+                $bml_button_markup .= '</a>';
+
+                // Marketing Message
+                $bml_button_markup .= '<a target="_blank" href="https://www.securecheckout.billmelater.com/paycapture-content/fetch?hash=AU826TU8&content=/bmlweb/ppwpsiw.html" >';
+                $bml_button_markup .= "<img src='https://www.paypalobjects.com/webstatic/en_US/btn/btn_bml_text.png' width='150' />";
+                $bml_button_markup .= '</a>';
+                $bml_button_markup .= '</div>';
+                echo $bml_button_markup;
+            }
             echo '<p class="checkoutStatus">', __( 'Skip the forms and pay faster with PayPal.', 'paypal-for-woocommerce' ), '</p>';
-			echo '<div class="clear"></div></div>';
-			echo '</div>';
-			echo '<div style="clear:both; margin-bottom:10px;"></div>';
-			
-			//echo apply_filters( 'woocommerce_ppe_checkout_message', __( 'Have a PayPal account?', 'paypal-for-woocommerce' ) ) . '</p>';
-		}
+            echo '<div class="clear"></div></div>';
+            echo '</div>';
+            echo '<div style="clear:both; margin-bottom:10px;"></div>';
+
+            //echo apply_filters( 'woocommerce_ppe_checkout_message', __( 'Have a PayPal account?', 'paypal-for-woocommerce' ) ) . '</p>';
+        }
     }
     /**
      *  PayPal Express Checkout
@@ -493,35 +493,35 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 if ( ! defined( 'WOOCOMMERCE_CHECKOUT' ) )
                     define( 'WOOCOMMERCE_CHECKOUT', true );
                 $this->add_log( 'Start Express Checkout' );
-				
-				/**
-				 * Check if the EC button used was the BML button.
-				 * This $useBML flag will be used to adjust the SEC request accordingly.
-				 */
-				if(isset($_GET['use_bml']) && 'true' == $_GET['use_bml'])
-				{
-					$useBML = true;
-				}
-				else
-				{
-					$useBML = false;
-				}
-				
+
+                /**
+                 * Check if the EC button used was the BML button.
+                 * This $useBML flag will be used to adjust the SEC request accordingly.
+                 */
+                if(isset($_GET['use_bml']) && 'true' == $_GET['use_bml'])
+                {
+                    $useBML = true;
+                }
+                else
+                {
+                    $useBML = false;
+                }
+
                 WC()->cart->calculate_totals();
                 //$paymentAmount    = WC()->cart->get_total();
-				$paymentAmount	  = number_format(WC()->cart->total,2,'.','');
+                $paymentAmount	  = number_format(WC()->cart->total,2,'.','');
                 $returnURL        = urlencode( add_query_arg( 'pp_action', 'revieworder', get_permalink( woocommerce_get_page_id( 'review_order' )) ) );
                 $cancelURL        = urlencode( WC()->cart->get_cart_url() );
                 $resArray         = $this->CallSetExpressCheckout( $paymentAmount, $returnURL, $cancelURL, $useBML );
                 $ack              = strtoupper( $resArray["ACK"] );
-                
-				if($ack == "SUCCESS" || $ack == "SUCCESSWITHWARNING")
-				{
+
+                if($ack == "SUCCESS" || $ack == "SUCCESSWITHWARNING")
+                {
                     $this->add_log( 'Redirecting to PayPal' );
                     $this->RedirectToPayPal( $resArray["TOKEN"] );
                 }
-				else
-				{
+                else
+                {
                     // Display a user friendly Error on the page and log details
                     $ErrorCode         = urldecode( $resArray["L_ERRORCODE0"] );
                     $ErrorShortMsg     = urldecode( $resArray["L_SHORTMESSAGE0"] );
@@ -543,25 +543,25 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                     $message .= __( 'Detailed Error Message: ' , 'paypal-for-woocommerce') . $ErrorLongMsg ."\n";
 
                     wp_mail($admin_email, "PayPal Express Checkout Error Notification",$message);
-					
-					// Generate error message based on Error Display Type setting
-					if($this->error_display_type == 'detailed')
-					{
-						$sec_error_notice = $ErrorCode.' - '.$ErrorLongMsg;
-						wc_add_notice(  sprintf( __($sec_error_notice, 'paypal-for-woocommerce' ) ), 'error' );						
-					}
-					else
-					{
-						wc_add_notice(  sprintf( __('There was a problem paying with PayPal.  Please try another method.', 'paypal-for-woocommerce' ) ), 'error' );	
-					}
-					
+
+                    // Generate error message based on Error Display Type setting
+                    if($this->error_display_type == 'detailed')
+                    {
+                        $sec_error_notice = $ErrorCode.' - '.$ErrorLongMsg;
+                        wc_add_notice(  sprintf( __($sec_error_notice, 'paypal-for-woocommerce' ) ), 'error' );
+                    }
+                    else
+                    {
+                        wc_add_notice(  sprintf( __('There was a problem paying with PayPal.  Please try another method.', 'paypal-for-woocommerce' ) ), 'error' );
+                    }
+
                     wp_redirect( get_permalink( wc_get_page_id( 'cart' ) ) );
                     exit;
                 }
             }
         }
-		elseif ( isset( $_GET['pp_action'] ) && $_GET['pp_action'] == 'revieworder' )
-		{	
+        elseif ( isset( $_GET['pp_action'] ) && $_GET['pp_action'] == 'revieworder' )
+        {
             wc_clear_notices();
             // The customer has logged into PayPal and approved order.
             // Retrieve the shipping details and present the order for completion.
@@ -577,11 +577,11 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             }
             $this->add_log( "...Token:" . $this->get_session( 'TOKEN' ) );
             $this->add_log( "...PayerID: " . $this->get_session( 'PayerID' ) );
-            
-			$result = $this->CallGetShippingDetails($this->get_session('TOKEN'));
-			
+
+            $result = $this->CallGetShippingDetails($this->get_session('TOKEN'));
+
             if(!empty($result))
-			{
+            {
                 $this->set_session('RESULT',serialize($result));
                 if ( isset( $result['SHIPTONAME'] ) ) WC()->customer->shiptoname =  $result['SHIPTONAME'] ;
                 if ( isset( $result['SHIPTOSTREET'] ) ) WC()->customer->set_address( $result['SHIPTOSTREET'] );
@@ -593,27 +593,27 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 if ( isset( $result['SHIPTOSTATE'] ) ) WC()->customer->set_shipping_state( $this->get_state_code( $result['SHIPTOCOUNTRYCODE'], $result['SHIPTOSTATE'] ) );
                 if ( isset( $result['SHIPTOZIP'] ) ) WC()->customer->set_shipping_postcode( $result['SHIPTOZIP'] );
 
-				/**
-				 * Save GECD data in sessions for use in DECP
-				 */
-				$this->set_session('shiptoname',isset($result['SHIPTONAME']) ? $result['SHIPTONAME'] : '');
-				$this->set_session('shiptostreet',isset($result['SHIPTOSTREET']) ? $result['SHIPTOSTREET'] : '');
-				$this->set_session('shiptostreet2',isset($result['SHIPTOSTREET2']) ? $result['SHIPTOSTREET2'] : '');
-				$this->set_session('shiptocity',isset($result['SHIPTOCITY']) ? $result['SHIPTOCITY'] : '');
-				$this->set_session('shiptocountrycode',isset($result['SHIPTOCOUNTRYCODE']) ? $result['SHIPTOCOUNTRYCODE'] : '');
-				$this->set_session('shiptostate',isset($result['SHIPTOSTATE']) ? $result['SHIPTOSTATE'] : '');
-				$this->set_session('shiptozip',isset($result['SHIPTOZIP']) ? $result['SHIPTOZIP'] : '');
-				$this->set_session('payeremail',isset($result['EMAIL']) ? $result['EMAIL'] : '');
-				$this->set_session('giftmessage',isset($result['GIFTMESSAGE']) ? $result['GIFTMESSAGE'] : '');
-				$this->set_session('giftreceiptenable',isset($result['GIFTRECEIPTENABLE']) ? $result['GIFTRECEIPTENABLE'] : '');
-				$this->set_session('giftwrapname',isset($result['GIFTWRAPNAME']) ? $result['GIFTWRAPNAME'] : '');
-				$this->set_session('giftwrapamount',isset($result['GIFTWRAPAMOUNT']) ? $result['GIFTWRAPAMOUNT'] : '');
-				$this->set_session('customer_notes',isset($result['PAYMENTREQUEST_0_NOTETEXT']) ? $result['PAYMENTREQUEST_0_NOTETEXT'] : '');
+                /**
+                 * Save GECD data in sessions for use in DECP
+                 */
+                $this->set_session('shiptoname',isset($result['SHIPTONAME']) ? $result['SHIPTONAME'] : '');
+                $this->set_session('shiptostreet',isset($result['SHIPTOSTREET']) ? $result['SHIPTOSTREET'] : '');
+                $this->set_session('shiptostreet2',isset($result['SHIPTOSTREET2']) ? $result['SHIPTOSTREET2'] : '');
+                $this->set_session('shiptocity',isset($result['SHIPTOCITY']) ? $result['SHIPTOCITY'] : '');
+                $this->set_session('shiptocountrycode',isset($result['SHIPTOCOUNTRYCODE']) ? $result['SHIPTOCOUNTRYCODE'] : '');
+                $this->set_session('shiptostate',isset($result['SHIPTOSTATE']) ? $result['SHIPTOSTATE'] : '');
+                $this->set_session('shiptozip',isset($result['SHIPTOZIP']) ? $result['SHIPTOZIP'] : '');
+                $this->set_session('payeremail',isset($result['EMAIL']) ? $result['EMAIL'] : '');
+                $this->set_session('giftmessage',isset($result['GIFTMESSAGE']) ? $result['GIFTMESSAGE'] : '');
+                $this->set_session('giftreceiptenable',isset($result['GIFTRECEIPTENABLE']) ? $result['GIFTRECEIPTENABLE'] : '');
+                $this->set_session('giftwrapname',isset($result['GIFTWRAPNAME']) ? $result['GIFTWRAPNAME'] : '');
+                $this->set_session('giftwrapamount',isset($result['GIFTWRAPAMOUNT']) ? $result['GIFTWRAPAMOUNT'] : '');
+                $this->set_session('customer_notes',isset($result['PAYMENTREQUEST_0_NOTETEXT']) ? $result['PAYMENTREQUEST_0_NOTETEXT'] : '');
                 WC()->cart->calculate_totals();
 
-            } 
-			else
-			{
+            }
+            else
+            {
                 $this->add_log( "...ERROR: GetShippingDetails returned empty result" );
             }
 
@@ -661,10 +661,10 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 }
             }
         }
-		elseif ( isset( $_GET['pp_action'] ) && $_GET['pp_action'] == 'payaction' )
-		{
-            if ( isset( $_POST ) ) 
-			{
+        elseif ( isset( $_GET['pp_action'] ) && $_GET['pp_action'] == 'payaction' )
+        {
+            if ( isset( $_POST ) )
+            {
                 // Update customer shipping and payment method to posted method
                 $chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
 
@@ -685,25 +685,25 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 if ( ! defined( 'WOOCOMMERCE_CHECKOUT' ) )
                     define( 'WOOCOMMERCE_CHECKOUT', true );
                 WC()->cart->calculate_totals();
-                    $order_id = WC()->checkout()->create_order();
-				
-				/**
-				 * Update meta data with session data
-				 */
-				update_post_meta( $order_id, '_payment_method',   $this->id );
-				update_post_meta( $order_id, '_payment_method_title',  $this->title );
-				update_post_meta( $order_id, '_billing_email',    $this->get_session('payeremail'));
-				update_post_meta( $order_id, '_shipping_first_name',  $this->get_session('shiptoname'));
-				update_post_meta( $order_id, '_shipping_last_name',  "" );
-				update_post_meta( $order_id, '_shipping_company',   "" );
-				update_post_meta( $order_id, '_shipping_address_1',  $this->get_session('shiptostreet'));
-				update_post_meta( $order_id, '_shipping_address_2',  $this->get_session('shiptostreet2'));
-				update_post_meta( $order_id, '_shipping_city',    $this->get_session('shiptocity'));
-				update_post_meta( $order_id, '_shipping_postcode',   $this->get_session('shiptozip'));
-				update_post_meta( $order_id, '_shipping_country',   $this->get_session('shiptocountrycode'));
-				update_post_meta( $order_id, '_shipping_state',   $this->get_state_code( $this->get_session('shiptocountrycode'), $this->get_session('shiptostate')));
+                $order_id = WC()->checkout()->create_order();
+
+                /**
+                 * Update meta data with session data
+                 */
+                update_post_meta( $order_id, '_payment_method',   $this->id );
+                update_post_meta( $order_id, '_payment_method_title',  $this->title );
+                update_post_meta( $order_id, '_billing_email',    $this->get_session('payeremail'));
+                update_post_meta( $order_id, '_shipping_first_name',  $this->get_session('shiptoname'));
+                update_post_meta( $order_id, '_shipping_last_name',  "" );
+                update_post_meta( $order_id, '_shipping_company',   "" );
+                update_post_meta( $order_id, '_shipping_address_1',  $this->get_session('shiptostreet'));
+                update_post_meta( $order_id, '_shipping_address_2',  $this->get_session('shiptostreet2'));
+                update_post_meta( $order_id, '_shipping_city',    $this->get_session('shiptocity'));
+                update_post_meta( $order_id, '_shipping_postcode',   $this->get_session('shiptozip'));
+                update_post_meta( $order_id, '_shipping_country',   $this->get_session('shiptocountrycode'));
+                update_post_meta( $order_id, '_shipping_state',   $this->get_state_code( $this->get_session('shiptocountrycode'), $this->get_session('shiptostate')));
                 update_post_meta( $order_id, '_customer_user', 	get_current_user_id() );
-               
+
                 $this->add_log( '...Order ID: ' . $order_id );
                 $order = new WC_Order( $order_id );
                 do_action( 'woocommerce_ppe_do_payaction', $order );
@@ -711,34 +711,34 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 $this->add_log( '...Cart Total: '.WC()->cart->get_total() );
                 $this->add_log( "...Token:" . $this->get_session( 'TOKEN' ) );
                 $result = $this->ConfirmPayment( $order->order_total );
-				
-				/**
-				 * Customer Notes
-				 */
-				if($this->get_session('customer_notes') != '')
-				{
-					$order->add_order_note(__( 'Customer Notes: ' , 'paypal-for-woocommerce' ).$this->get_session('customer_notes'));
-				}
-				
-				if($result['ACK'] == 'Success' || $result['ACK'] == 'SuccessWithWarning')
-				{
+
+                /**
+                 * Customer Notes
+                 */
+                if($this->get_session('customer_notes') != '')
+                {
+                    $order->add_order_note(__( 'Customer Notes: ' , 'paypal-for-woocommerce' ).$this->get_session('customer_notes'));
+                }
+
+                if($result['ACK'] == 'Success' || $result['ACK'] == 'SuccessWithWarning')
+                {
                     $this->add_log( 'Payment confirmed with PayPal successfully' );
                     $result = apply_filters( 'woocommerce_payment_successful_result', $result );
-                    
-					/**
-					 * Gift Wrap Notes
-					 */
-					if ($this->get_session('giftwrapamount')!='') 
-					{
-						$giftwrap_note = __( 'Gift Wrap Added' , 'paypal-for-woocommerce');
-						$giftwrap_note .= $this->get_session('giftwrapname') != '' ? ' - ' . $this->get_session('giftwrapname') : '';
-						$giftwrap_note .= $this->get_session('giftmessage') != '' ? '<br />Message: ' . $this->get_session('giftmessage') : '';
-						$giftwrap_note .= '<br />'.__( 'Use Gift Receipt?: ' , 'paypal-for-woocommerce' );
-						$giftwrap_note .= strtolower($this->get_session('giftreceiptenable')) == 'true' ? 'Yes' : 'No';
-						//$giftwrap_note .= '<br />Fee: ' . woocommerce_price(number_format($this->get_session('giftwrapamount'),2));
+
+                    /**
+                     * Gift Wrap Notes
+                     */
+                    if ($this->get_session('giftwrapamount')!='')
+                    {
+                        $giftwrap_note = __( 'Gift Wrap Added' , 'paypal-for-woocommerce');
+                        $giftwrap_note .= $this->get_session('giftwrapname') != '' ? ' - ' . $this->get_session('giftwrapname') : '';
+                        $giftwrap_note .= $this->get_session('giftmessage') != '' ? '<br />Message: ' . $this->get_session('giftmessage') : '';
+                        $giftwrap_note .= '<br />'.__( 'Use Gift Receipt?: ' , 'paypal-for-woocommerce' );
+                        $giftwrap_note .= strtolower($this->get_session('giftreceiptenable')) == 'true' ? 'Yes' : 'No';
+                        //$giftwrap_note .= '<br />Fee: ' . woocommerce_price(number_format($this->get_session('giftwrapamount'),2));
                         $order->add_order_note($giftwrap_note);
                     }
-					
+
                     $order->add_order_note( __( 'PayPal Express payment completed', 'paypal-for-woocommerce' ) .
                         ' ( Response Code: ' . $result['ACK'] . ", " .
                         ' TransactionID: '.$result['PAYMENTINFO_0_TRANSACTIONID'] . ' )' );
@@ -752,15 +752,15 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                     $order->payment_complete();
                     // Empty the Cart
                     WC()->cart->empty_cart();
-					wp_redirect( $this->get_return_url( $order ) );
-					exit();
+                    wp_redirect( $this->get_return_url( $order ) );
+                    exit();
                 }
-				else
-				{
+                else
+                {
                     $this->add_log( '...Error confirming order '.$order_id.' with PayPal' );
                     $this->add_log( '...response:'.print_r( $result, true ) );
-					
-					// Display a user friendly Error on the page and log details
+
+                    // Display a user friendly Error on the page and log details
                     $ErrorCode         = urldecode( $result["L_ERRORCODE0"] );
                     $ErrorShortMsg     = urldecode( $result["L_SHORTMESSAGE0"] );
                     $ErrorLongMsg      = urldecode( $result["L_LONGMESSAGE0"] );
@@ -781,21 +781,21 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                     $message.='Detailed Error Message: ' . $ErrorLongMsg ."\n";
 
                     wp_mail($admin_email, "PayPal Express Checkout Error Notification",$message);
-					
-					// Generate error message based on Error Display Type setting
-					if($this->error_display_type == 'detailed')
-					{
-						$sec_error_notice = $ErrorCode.' - '.$ErrorLongMsg;
-						wc_add_notice(  sprintf( __($sec_error_notice, 'paypal-for-woocommerce' ) ), 'error' );						
-					}
-					else
-					{
-						wc_add_notice(  sprintf( __('There was a problem paying with PayPal.  Please try another method.', 'paypal-for-woocommerce' ) ), 'error' );	
-					}
-					
-					wp_redirect(get_permalink(wc_get_page_id('cart')));
-					exit();
-                }				
+
+                    // Generate error message based on Error Display Type setting
+                    if($this->error_display_type == 'detailed')
+                    {
+                        $sec_error_notice = $ErrorCode.' - '.$ErrorLongMsg;
+                        wc_add_notice(  sprintf( __($sec_error_notice, 'paypal-for-woocommerce' ) ), 'error' );
+                    }
+                    else
+                    {
+                        wc_add_notice(  sprintf( __('There was a problem paying with PayPal.  Please try another method.', 'paypal-for-woocommerce' ) ), 'error' );
+                    }
+
+                    wp_redirect(get_permalink(wc_get_page_id('cart')));
+                    exit();
+                }
             }
         }
     }
@@ -992,7 +992,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             'payflowcolor' => '', 						// Sets the background color for the payment page.  Default is white.
             'skipdetails' => '', 						// This is a custom field not included in the PayPal documentation.  It's used to specify whether you want to skip the GetExpressCheckoutDetails part of checkout or not.  See PayPal docs for more info.
             'email' => '', 								// Email address of the buyer as entered during checkout.  PayPal uses this value to pre-fill the PayPal sign-in page.  127 char max.
-			'channeltype' => '', 						// Type of channel.  Must be Merchant (non-auction seller) or eBayItem (eBay auction)
+            'channeltype' => '', 						// Type of channel.  Must be Merchant (non-auction seller) or eBayItem (eBay auction)
             'giropaysuccessurl' => '', 					// The URL on the merchant site to redirect to after a successful giropay payment.  Only use this field if you are using giropay or bank transfer payment methods in Germany.
             'giropaycancelurl' => '', 					// The URL on the merchant site to redirect to after a canceled giropay payment.  Only use this field if you are using giropay or bank transfer methods in Germany.
             'banktxnpendingurl' => '',  				// The URL on the merchant site to transfer to after a bank transfter payment.  Use this field only if you are using giropay or bank transfer methods in Germany.
@@ -1010,39 +1010,39 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             'taxidtype' => '', 							// The buyer's tax ID type.  This field is required for Brazil and used for Brazil only.  Values:  BR_CPF for individuals and BR_CNPJ for businesses.
             'taxid' => ''								// The buyer's tax ID.  This field is required for Brazil and used for Brazil only.  The tax ID is 11 single-byte characters for individutals and 14 single-byte characters for businesses.
         );
-		
-		/**
-		 * If Gift Wrap options are enabled, add them to SEC
-		 */
-		if(strtolower($this->gift_wrap_enabled) == 'yes')
-		{
-			$SECFields['giftwrapenable'] = '1'; 					// Enable gift wrap widget on the PayPal Review page.  Allowable values are 0 and 1.
-			$SECFields['giftmessageenable'] = $this->gift_message_enabled ? '1' : ''; 					// Enable gift message widget on the PayPal Review page. Allowable values are 0 and 1
+
+        /**
+         * If Gift Wrap options are enabled, add them to SEC
+         */
+        if(strtolower($this->gift_wrap_enabled) == 'yes')
+        {
+            $SECFields['giftwrapenable'] = '1'; 					// Enable gift wrap widget on the PayPal Review page.  Allowable values are 0 and 1.
+            $SECFields['giftmessageenable'] = $this->gift_message_enabled ? '1' : ''; 					// Enable gift message widget on the PayPal Review page. Allowable values are 0 and 1
             $SECFields['giftreceiptenable'] = $this->gift_receipt_enabled ? '1' : ''; 					// Enable gift receipt widget on the PayPal Review page. Allowable values are 0 and 1
             $SECFields['giftwrapname'] = $this->gift_wrap_name; 						// Label for the gift wrap option such as "Box with ribbon".  25 char max.
             $SECFields['giftwrapamount'] = $this->gift_wrap_amount;			// Amount charged for gift-wrap service.
-		}
-		
-		/**
-		 * If BML is being used, override the necessary parameters
-		 */
-		if($useBML)
-		{
-			$SECFields['solutiontype'] = 'Sole';
-			$SECFields['landingpage'] = 'Billing';
-			$SECFields['userselectedfundingsource'] = 'BML';	
-		}
-		elseif(strtolower($this->paypal_account_optional) == 'yes' && strtolower($this->landing_page) == 'billing')
-		{
-			$SECFields['solutiontype'] = 'Sole';
-			$SECFields['landingpage'] = 'Billing';
-			$SECFields['userselectedfundingsource'] = 'CreditCard';
-		}
-		elseif(strtolower($this->paypal_account_optional) == 'yes' && strtolower($this->landing_page) == 'login')
-		{
-			$SECFields['solutiontype'] = 'Sole';
-			$SECFields['landingpage'] = 'Login';
-		}
+        }
+
+        /**
+         * If BML is being used, override the necessary parameters
+         */
+        if($useBML)
+        {
+            $SECFields['solutiontype'] = 'Sole';
+            $SECFields['landingpage'] = 'Billing';
+            $SECFields['userselectedfundingsource'] = 'BML';
+        }
+        elseif(strtolower($this->paypal_account_optional) == 'yes' && strtolower($this->landing_page) == 'billing')
+        {
+            $SECFields['solutiontype'] = 'Sole';
+            $SECFields['landingpage'] = 'Billing';
+            $SECFields['userselectedfundingsource'] = 'CreditCard';
+        }
+        elseif(strtolower($this->paypal_account_optional) == 'yes' && strtolower($this->landing_page) == 'login')
+        {
+            $SECFields['solutiontype'] = 'Sole';
+            $SECFields['landingpage'] = 'Login';
+        }
 
         // Basic array of survey choices.  Nothing but the values should go in here.
         $SurveyChoices = array('Choice 1', 'Choice2', 'Choice3', 'etc');
@@ -1050,15 +1050,16 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
         /*
          * Get tax amount.
          */
-        if(get_option('woocommerce_prices_include_tax') == 'yes')
+        $carttax    = get_option('woocommerce_tax_display_cart'); //Add option for a element to compare
+        if($carttax == 'excl')
         {
             $shipping 		= WC()->cart->shipping_total + WC()->cart->shipping_tax_total;
-            $tax			= '0.00';
+            $tax			= WC()->cart->get_taxes_total();
         }
         else
         {
             $shipping 		= WC()->cart->shipping_total;
-            $tax 			= WC()->cart->get_taxes_total();
+            $tax 			= '0.00';
         }
 
         $Payments = array();
@@ -1091,13 +1092,13 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
         );
 
         $PaymentOrderItems = array();
-        $ctr = $total_items = $total_discount = $total_tax = $order_total = 0;
+        $ctr = $total_items = $total_discount = $total_tax = $order_total = $totalTax = 0;
         foreach(WC()->cart->get_cart() as $cart_item_key => $values)
         {
             /*
              * Get product data from WooCommerce
              */
-            $_product          = $values['data'];
+            $_product          = apply_filters( 'woocommerce_cart_item_product', $values['data'], $values, $cart_item_key );
             $qty               = absint( $values['quantity'] );
             $sku = $_product->get_sku();
             $values['name'] = html_entity_decode($_product->get_title(), ENT_NOQUOTES, 'UTF-8');
@@ -1121,22 +1122,25 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             /*
              * Set price based on tax option.
              */
-            if(get_option('woocommerce_prices_include_tax') == 'yes')
+            $taxproduct = ''; //Set tax product
+            if($carttax == 'excl')
             {
-                $product_price = number_format($_product->get_price_including_tax(),2,'.','');
+                $product_price = $_product->get_price_excluding_tax();
+                $taxproduct = $values['line_tax'];
+                $totalTax += round($values['line_tax'],2);
             }
             else
             {
-                $product_price = number_format($_product->get_price_excluding_tax(),2,'.','');
+                $product_price = $_product->get_price_including_tax();
             }
 
             $Item = array(
                 'name' => $values['name'], 								// Item name. 127 char max.
                 'desc' => '', 								// Item description. 127 char max.
-                'amt' => number_format($product_price,2,'.',''), 								// Cost of item.
+                'amt' => round($product_price,2), 								// Cost of item.
                 'number' => $sku, 							// Item number.  127 char max.
                 'qty' => $qty, 								// Item qty on order.  Any positive integer.
-                'taxamt' => '', 							// Item sales tax
+                'taxamt' => number_format($taxproduct,2,'.',''), 							// Item sales tax
                 'itemurl' => '', 							// URL for the item.
                 'itemcategory' => '', 						// One of the following values:  Digital, Physical
                 'itemweightvalue' => '', 					// The weight value of the item.
@@ -1153,14 +1157,41 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 'ebayitemcartid' => ''						// The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
             );
             array_push($PaymentOrderItems, $Item);
-
-            $total_items += $product_price*$values['quantity'];
+            $total_items += round($product_price,2) * $values['quantity'];
             $ctr++;
         }
-		
-		/**
-		 * Add custom Woo cart fees as line items
-		 */
+
+        // Fix rounding if needed
+        $totalAmount = WC()->cart->total - $tax;
+        if($carttax == 'excl' && ($totalAmount != $total_items || $totalTax != $tax) ){
+            $Item = array(
+                'name' => 'Rounding amendments', // Item name. 127 char max.
+                'desc' => '', // Item description. 127 char max.
+                'amt' => number_format($totalAmount - $total_items,2,'.',''), // Cost of item.
+                'number' => '', // Item number. 127 char max.
+                'qty' => 1, // Item qty on order. Any positive integer.
+                'taxamt' => number_format($tax - $totalTax,2,'.',''), // Item sales tax
+                'itemurl' => '', // URL for the item.
+                'itemcategory' => '', // One of the following values: Digital, Physical
+                'itemweightvalue' => '', // The weight value of the item.
+                'itemweightunit' => '', // The weight unit of the item.
+                'itemheightvalue' => '', // The height value of the item.
+                'itemheightunit' => '', // The height unit of the item.
+                'itemwidthvalue' => '', // The width value of the item.
+                'itemwidthunit' => '', // The width unit of the item.
+                'itemlengthvalue' => '', // The length value of the item.
+                'itemlengthunit' => '', // The length unit of the item.
+                'ebayitemnumber' => '', // Auction item number.
+                'ebayitemauctiontxnid' => '', // Auction transaction ID number.
+                'ebayitemorderid' => '', // Auction order ID number.
+                'ebayitemcartid' => '' // The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
+            );
+            array_push($PaymentOrderItems, $Item);
+            $total_items += ($totalAmount - $total_items);
+        }
+        /**
+         * Add custom Woo cart fees as line items
+         */
         foreach ( WC()->cart->get_fees() as $fee ) {
             $Item = array(
                 'name' => $fee->name, // Item name. 127 char max.
@@ -1406,7 +1437,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
         if (!empty($this->confirm_order_id))
         {
             $order =  new WC_Order($this->confirm_order_id);
-			$invoice_number = preg_replace("/[^0-9,.]/", "", $order->get_order_number());
+            $invoice_number = preg_replace("/[^0-9,.]/", "", $order->get_order_number());
 
             if ( $order->customer_note )
             {
@@ -1533,48 +1564,48 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 
                 $ITEMAMT += $product_price * $values['qty'];
             }
-			
-			/**
-			 * Add custom Woo cart fees as line items
-			 */
-			foreach ( WC()->cart->get_fees() as $fee ) {
-				$Item = array(
-					'name' => $fee->name, // Item name. 127 char max.
-					'desc' => '', // Item description. 127 char max.
-					'amt' => number_format($fee->amount,2,'.',''), // Cost of item.
-					'number' => $fee->id, // Item number. 127 char max.
-					'qty' => 1, // Item qty on order. Any positive integer.
-					'taxamt' => '', // Item sales tax
-					'itemurl' => '', // URL for the item.
-					'itemcategory' => '', // One of the following values: Digital, Physical
-					'itemweightvalue' => '', // The weight value of the item.
-					'itemweightunit' => '', // The weight unit of the item.
-					'itemheightvalue' => '', // The height value of the item.
-					'itemheightunit' => '', // The height unit of the item.
-					'itemwidthvalue' => '', // The width value of the item.
-					'itemwidthunit' => '', // The width unit of the item.
-					'itemlengthvalue' => '', // The length value of the item.
-					'itemlengthunit' => '', // The length unit of the item.
-					'ebayitemnumber' => '', // Auction item number.
-					'ebayitemauctiontxnid' => '', // Auction transaction ID number.
-					'ebayitemorderid' => '', // Auction order ID number.
-					'ebayitemcartid' => '' // The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
-				);
-				
-				/**
-				 * The gift wrap amount actually has its own parameter in 
-				 * DECP, so we don't want to include it as one of the line
-				 * items.
-				 */
-				if($Item['number'] != 'gift-wrap')
-				{	
-					array_push($PaymentOrderItems, $Item);
-					$ITEMAMT += $fee->amount*$Item['qty'];
-				}
-				
-				$ctr++;
-	
-			}
+
+            /**
+             * Add custom Woo cart fees as line items
+             */
+            foreach ( WC()->cart->get_fees() as $fee ) {
+                $Item = array(
+                    'name' => $fee->name, // Item name. 127 char max.
+                    'desc' => '', // Item description. 127 char max.
+                    'amt' => number_format($fee->amount,2,'.',''), // Cost of item.
+                    'number' => $fee->id, // Item number. 127 char max.
+                    'qty' => 1, // Item qty on order. Any positive integer.
+                    'taxamt' => '', // Item sales tax
+                    'itemurl' => '', // URL for the item.
+                    'itemcategory' => '', // One of the following values: Digital, Physical
+                    'itemweightvalue' => '', // The weight value of the item.
+                    'itemweightunit' => '', // The weight unit of the item.
+                    'itemheightvalue' => '', // The height value of the item.
+                    'itemheightunit' => '', // The height unit of the item.
+                    'itemwidthvalue' => '', // The width value of the item.
+                    'itemwidthunit' => '', // The width unit of the item.
+                    'itemlengthvalue' => '', // The length value of the item.
+                    'itemlengthunit' => '', // The length unit of the item.
+                    'ebayitemnumber' => '', // Auction item number.
+                    'ebayitemauctiontxnid' => '', // Auction transaction ID number.
+                    'ebayitemorderid' => '', // Auction order ID number.
+                    'ebayitemcartid' => '' // The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
+                );
+
+                /**
+                 * The gift wrap amount actually has its own parameter in
+                 * DECP, so we don't want to include it as one of the line
+                 * items.
+                 */
+                if($Item['number'] != 'gift-wrap')
+                {
+                    array_push($PaymentOrderItems, $Item);
+                    $ITEMAMT += $fee->amount*$Item['qty'];
+                }
+
+                $ctr++;
+
+            }
 
             /*
              * Get discounts
@@ -1754,7 +1785,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
      * @return void
      */
     private function set_session( $key, $value ) {
-            WC()->session->$key = $value;
+        WC()->session->$key = $value;
     }
     /**
      * get_session function.
@@ -1788,7 +1819,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 
         }
     }
-	
+
     /**
      *  Checkout Button
      *
@@ -1796,15 +1827,15 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
      *  Displays the PayPal Express button.
      */
     static function woocommerce_paypal_express_checkout_button_angelleye()
-	{
+    {
         global $pp_settings, $pp_pro, $pp_payflow;
-		
-		/*echo '<pre />';
-		print_r($pp_settings);
-		exit();*/
-		
+
+        /*echo '<pre />';
+        print_r($pp_settings);
+        exit();*/
+
         if (@$pp_settings['enabled']=='yes' && 0 < WC()->cart->total )
-		{
+        {
             $payment_gateways = WC()->payment_gateways->get_available_payment_gateways();
             // Pay with Credit Card
 
