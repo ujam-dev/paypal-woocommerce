@@ -1404,6 +1404,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
      */
     function ConfirmPayment($FinalPaymentAmt)
     {
+        $carttax    = get_option('woocommerce_tax_display_cart'); //Add option for a element to compare
         /*
          * Display message to user if session has expired.
          */
@@ -1502,7 +1503,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 
         $PaymentOrderItems = array();
         $ctr = 0;
-        $ITEMAMT = 0;
+        $ITEMAMT = $TAXAMT = 0;
         if(sizeof($order->get_items())>0)
         {
             foreach ($order->get_items() as $values)
@@ -1529,13 +1530,16 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 /*
                  * Set price based on tax option.
                  */
-                if(get_option('woocommerce_prices_include_tax') == 'yes')
+                $tax = '';
+                if($carttax == 'incl')
                 {
-                    $product_price = $order->get_item_subtotal($values,true,false);
+                    $product_price = number_format( $order->get_item_subtotal($values,true,false), 2, '.', '');
                 }
                 else
                 {
-                    $product_price = $order->get_item_subtotal($values,false,true);
+                    $tax = number_format( $order->get_item_tax( $values, false ), 2, '.', '' );
+                    $TAXAMT += (float)$tax;
+                    $product_price = number_format( $order->get_item_subtotal($values,false,true), 2, '.', '');
                 }
 
                 $Item = array(
@@ -1544,7 +1548,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                     'amt' => $product_price, 								// Cost of item.
                     'number' => $sku, 							// Item number.  127 char max.
                     'qty' => $qty, 								// Item qty on order.  Any positive integer.
-                    'taxamt' => '', 							// Item sales tax
+                    'taxamt' => $tax, 							// Item sales tax
                     'itemurl' => '', 							// URL for the item.
                     'itemcategory' => '', 						// One of the following values:  Digital, Physical
                     'itemweightvalue' => '', 					// The weight value of the item.
@@ -1565,47 +1569,47 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 $ITEMAMT += $product_price * $values['qty'];
             }
 
-            /**
-             * Add custom Woo cart fees as line items
-             */
-            foreach ( WC()->cart->get_fees() as $fee ) {
-                $Item = array(
-                    'name' => $fee->name, // Item name. 127 char max.
-                    'desc' => '', // Item description. 127 char max.
-                    'amt' => number_format($fee->amount,2,'.',''), // Cost of item.
-                    'number' => $fee->id, // Item number. 127 char max.
-                    'qty' => 1, // Item qty on order. Any positive integer.
-                    'taxamt' => '', // Item sales tax
-                    'itemurl' => '', // URL for the item.
-                    'itemcategory' => '', // One of the following values: Digital, Physical
-                    'itemweightvalue' => '', // The weight value of the item.
-                    'itemweightunit' => '', // The weight unit of the item.
-                    'itemheightvalue' => '', // The height value of the item.
-                    'itemheightunit' => '', // The height unit of the item.
-                    'itemwidthvalue' => '', // The width value of the item.
-                    'itemwidthunit' => '', // The width unit of the item.
-                    'itemlengthvalue' => '', // The length value of the item.
-                    'itemlengthunit' => '', // The length unit of the item.
-                    'ebayitemnumber' => '', // Auction item number.
-                    'ebayitemauctiontxnid' => '', // Auction transaction ID number.
-                    'ebayitemorderid' => '', // Auction order ID number.
-                    'ebayitemcartid' => '' // The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
-                );
+			/**
+			 * Add custom Woo cart fees as line items
+			 */
+			foreach ( WC()->cart->get_fees() as $fee ) {
+				$Item = array(
+					'name' => $fee->name, // Item name. 127 char max.
+					'desc' => '', // Item description. 127 char max.
+					'amt' => number_format($fee->amount,2,'.',''), // Cost of item.
+					'number' => $fee->id, // Item number. 127 char max.
+					'qty' => 1, // Item qty on order. Any positive integer.
+					'taxamt' => '', // Item sales tax
+					'itemurl' => '', // URL for the item.
+					'itemcategory' => '', // One of the following values: Digital, Physical
+					'itemweightvalue' => '', // The weight value of the item.
+					'itemweightunit' => '', // The weight unit of the item.
+					'itemheightvalue' => '', // The height value of the item.
+					'itemheightunit' => '', // The height unit of the item.
+					'itemwidthvalue' => '', // The width value of the item.
+					'itemwidthunit' => '', // The width unit of the item.
+					'itemlengthvalue' => '', // The length value of the item.
+					'itemlengthunit' => '', // The length unit of the item.
+					'ebayitemnumber' => '', // Auction item number.
+					'ebayitemauctiontxnid' => '', // Auction transaction ID number.
+					'ebayitemorderid' => '', // Auction order ID number.
+					'ebayitemcartid' => '' // The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
+				);
 
-                /**
-                 * The gift wrap amount actually has its own parameter in
-                 * DECP, so we don't want to include it as one of the line
-                 * items.
-                 */
-                if($Item['number'] != 'gift-wrap')
-                {
-                    array_push($PaymentOrderItems, $Item);
-                    $ITEMAMT += $fee->amount*$Item['qty'];
-                }
+				/**
+				 * The gift wrap amount actually has its own parameter in
+				 * DECP, so we don't want to include it as one of the line
+				 * items.
+				 */
+				if($Item['number'] != 'gift-wrap')
+				{
+					array_push($PaymentOrderItems, $Item);
+					$ITEMAMT += $fee->amount*$Item['qty'];
+				}
 
-                $ctr++;
+				$ctr++;
 
-            }
+			}
 
             /*
              * Get discounts
@@ -1643,7 +1647,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             /*
              * Set shipping and tax values.
              */
-            if(get_option('woocommerce_prices_include_tax') == 'yes')
+            if($carttax == 'incl')
             {
                 $shipping 		= $order->get_total_shipping() + $order->get_shipping_tax();
                 $tax			= 0;
@@ -1653,11 +1657,43 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 $shipping 		= $order->get_total_shipping();
                 $tax 			= $order->get_total_tax();
             }
+            // Fix rounding if needed
+            $totalAmount = $FinalPaymentAmt - $tax;
+            if($carttax == 'excl' && ($totalAmount != $ITEMAMT || $TAXAMT != $tax) ){
+                $Item = array(
+                    'name' => 'Rounding amendments', // Item name. 127 char max.
+                    'desc' => '', // Item description. 127 char max.
+                    'amt' => number_format($totalAmount-$ITEMAMT,2,'.',''), // Cost of item.
+                    'number' => '', // Item number. 127 char max.
+                    'qty' => 1, // Item qty on order. Any positive integer.
+                    'taxamt' => number_format($tax - $TAXAMT,2,'.',''), // Item sales tax
+                    'itemurl' => '', // URL for the item.
+                    'itemcategory' => '', // One of the following values: Digital, Physical
+                    'itemweightvalue' => '', // The weight value of the item.
+                    'itemweightunit' => '', // The weight unit of the item.
+                    'itemheightvalue' => '', // The height value of the item.
+                    'itemheightunit' => '', // The height unit of the item.
+                    'itemwidthvalue' => '', // The width value of the item.
+                    'itemwidthunit' => '', // The width unit of the item.
+                    'itemlengthvalue' => '', // The length value of the item.
+                    'itemlengthunit' => '', // The length unit of the item.
+                    'ebayitemnumber' => '', // Auction item number.
+                    'ebayitemauctiontxnid' => '', // Auction transaction ID number.
+                    'ebayitemorderid' => '', // Auction order ID number.
+                    'ebayitemcartid' => '' // The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
+                );
+                array_push($PaymentOrderItems, $Item);
+                $ITEMAMT += ($totalAmount-$ITEMAMT);
+            }
+            /*
+             * Set shipping and tax values.
+             */
 
             /*
              * Now that we have all items and subtotals
              * we can fill in necessary values.
              */
+
             $Payment['itemamt'] = number_format($ITEMAMT,2,'.',''); 						// Required if you specify itemized L_AMT fields. Sum of cost of all items in this order.
 
             /*
@@ -1695,6 +1731,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
         );
 
         // Pass data into class for processing with PayPal and load the response array into $PayPalResult
+
         $PayPalResult = $PayPal->DoExpressCheckoutPayment($PayPalRequestData);
 
         /*
