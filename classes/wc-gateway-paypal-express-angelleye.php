@@ -1161,34 +1161,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             $ctr++;
         }
 
-        // Fix rounding if needed
-        $totalAmount = WC()->cart->total - $tax;
-        if($carttax == 'excl' && ($totalAmount != $total_items || $totalTax != $tax) ){
-            $Item = array(
-                'name' => 'Rounding amendments', // Item name. 127 char max.
-                'desc' => '', // Item description. 127 char max.
-                'amt' => number_format($totalAmount - $total_items,2,'.',''), // Cost of item.
-                'number' => '', // Item number. 127 char max.
-                'qty' => 1, // Item qty on order. Any positive integer.
-                'taxamt' => number_format($tax - $totalTax,2,'.',''), // Item sales tax
-                'itemurl' => '', // URL for the item.
-                'itemcategory' => '', // One of the following values: Digital, Physical
-                'itemweightvalue' => '', // The weight value of the item.
-                'itemweightunit' => '', // The weight unit of the item.
-                'itemheightvalue' => '', // The height value of the item.
-                'itemheightunit' => '', // The height unit of the item.
-                'itemwidthvalue' => '', // The width value of the item.
-                'itemwidthunit' => '', // The width unit of the item.
-                'itemlengthvalue' => '', // The length value of the item.
-                'itemlengthunit' => '', // The length unit of the item.
-                'ebayitemnumber' => '', // Auction item number.
-                'ebayitemauctiontxnid' => '', // Auction transaction ID number.
-                'ebayitemorderid' => '', // Auction order ID number.
-                'ebayitemcartid' => '' // The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
-            );
-            array_push($PaymentOrderItems, $Item);
-            $total_items += ($totalAmount - $total_items);
-        }
+
         /**
          * Add custom Woo cart fees as line items
          */
@@ -1253,6 +1226,35 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 array_push($PaymentOrderItems,$Item);
             }
             $total_discount -= WC()->cart->get_order_discount_total();
+        }
+
+        // Fix rounding if needed
+        $totalAmount = WC()->cart->total - $tax - $shipping;
+        if($carttax == 'excl' && ($totalAmount != $total_items || $totalTax != $tax) ){
+            $Item = array(
+                'name' => 'Rounding amendments', // Item name. 127 char max.
+                'desc' => '', // Item description. 127 char max.
+                'amt' => number_format($totalAmount - $total_items,2,'.',''), // Cost of item.
+                'number' => '', // Item number. 127 char max.
+                'qty' => 1, // Item qty on order. Any positive integer.
+                'taxamt' => number_format($tax - $totalTax,2,'.',''), // Item sales tax
+                'itemurl' => '', // URL for the item.
+                'itemcategory' => '', // One of the following values: Digital, Physical
+                'itemweightvalue' => '', // The weight value of the item.
+                'itemweightunit' => '', // The weight unit of the item.
+                'itemheightvalue' => '', // The height value of the item.
+                'itemheightunit' => '', // The height unit of the item.
+                'itemwidthvalue' => '', // The width value of the item.
+                'itemwidthunit' => '', // The width unit of the item.
+                'itemlengthvalue' => '', // The length value of the item.
+                'itemlengthunit' => '', // The length unit of the item.
+                'ebayitemnumber' => '', // Auction item number.
+                'ebayitemauctiontxnid' => '', // Auction transaction ID number.
+                'ebayitemorderid' => '', // Auction order ID number.
+                'ebayitemcartid' => '' // The unique identifier provided by eBay for this order from the buyer. These parameters must be ordered sequentially beginning with 0 (for example L_EBAYITEMCARTID0, L_EBAYITEMCARTID1). Character length: 255 single-byte characters
+            );
+            array_push($PaymentOrderItems, $Item);
+            $total_items += ($totalAmount - $total_items);
         }
 
         /*
@@ -1658,7 +1660,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 $tax 			= $order->get_total_tax();
             }
             // Fix rounding if needed
-            $totalAmount = $FinalPaymentAmt - $tax;
+            $totalAmount = $FinalPaymentAmt - $tax - $shipping;
             if($carttax == 'excl' && ($totalAmount != $ITEMAMT || $TAXAMT != $tax) ){
                 $Item = array(
                     'name' => 'Rounding amendments', // Item name. 127 char max.
