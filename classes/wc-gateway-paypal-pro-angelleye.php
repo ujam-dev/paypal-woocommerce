@@ -513,7 +513,7 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
             $_SESSION["Centinel_ErrorDesc"]         = $centinelClient->getValue("ErrorDesc");
             $_SESSION["Centinel_EciFlag"]         	= $centinelClient->getValue("EciFlag");
             $_SESSION["Centinel_TransactionType"] 	= "C";
-            $_SESSION['Centinel_TermUrl']			= str_replace('http:', 'https:', add_query_arg('wc-api', 'WC_Gateway_PayPal_Pro', home_url('/')));
+            $_SESSION['Centinel_TermUrl']			= str_replace('http:', 'https:', add_query_arg('wc-api', __CLASS__, home_url('/')));
             /******************************************************************************/
             /*                                                                            */
             /*                          Result Processing Logic                           */
