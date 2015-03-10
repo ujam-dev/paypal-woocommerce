@@ -520,6 +520,19 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
 				$this->add_log('PayFlow Endpoint: '.$PayPal->APIEndPoint);
             	$this->add_log(print_r($PayPalResult,true));
 			}
+
+            /**
+             * Check Curl Error
+             */
+            if( isset( $PayPalResult['CURL_ERROR'] ) ){
+                $admin_email = get_option("admin_email");
+                $message = __( "PayFlow API call failed." , "paypal-for-woocommerce" )."\n\n";
+                $message .= __( 'Error Code: 0' ,'paypal-for-woocommerce' ) . "\n";
+                $message .= __( 'Detailed Error Message: ' , 'paypal-for-woocommerce') . $PayPalResult['CURL_ERROR'];
+
+                wp_mail($admin_email, "PayPal Pro Error Notification",$message);
+                throw new Exception($PayPalResult['CURL_ERROR']);
+            }
 			
 			/**
 			 * Error check
