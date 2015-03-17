@@ -114,6 +114,14 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
      * Initialise Gateway Settings Form Fields
      */
     function init_form_fields() {
+        $list_credit_card_type = array(
+            'visa' => 'Visa',
+            'mastercard' => 'MasterCard',
+            'discover' => 'Discover',
+            'amex' => 'AmEx',
+            'jcb' => 'JCB',
+        );
+        $payflow_card_type = apply_filters( 'angelleye_paypro_credit_card_type', $list_credit_card_type );
         $this->form_fields = array(
             'enabled' => array(
                 'title' => __( 'Enable/Disable', 'paypal-for-woocommerce' ),
@@ -250,6 +258,12 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
                 'default' => 'no',
                 'description' => __( 'Log PayPal events inside <code>/wc-logs/paypal-pro.log</code>'
 			)
+            ),
+            'enable_credit_card'  => array(
+                'title'       => __( 'Enable credit cards', 'paypal-for-woocommerce' ),
+                'type'        => 'multiselect',
+                'class' => 'chosen_select',
+                'options'     => $payflow_card_type
             )
         );
     }
@@ -347,7 +361,10 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
             <p class="form-row form-row-last">
                 <label for="paypal_pro_cart_type"><?php _e("Card type", 'paypal-for-woocommerce') ?> <span class="required">*</span></label>
                 <select id="paypal_pro_card_type" name="paypal_pro_card_type" class="woocommerce-select">
-                    <?php foreach ($available_cards as $card => $label) : ?>
+                    <?php
+                        foreach ($available_cards as $card => $label) :
+                        if( !in_array( strtolower( $card ), $this->settings['enable_credit_card'])) continue;
+                    ?>
                     <option value="<?php echo $card ?>"><?php echo $label; ?></option>
                         <?php endforeach; ?>
                 </select>
@@ -455,6 +472,10 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
         $card_csc 			= isset($_POST['paypal_pro_card_csc']) ? wc_clean($_POST['paypal_pro_card_csc']) : '';
         $card_exp_month		= isset($_POST['paypal_pro_card_expiration_month']) ? wc_clean($_POST['paypal_pro_card_expiration_month']) : '';
         $card_exp_year 		= isset($_POST['paypal_pro_card_expiration_year']) ? wc_clean($_POST['paypal_pro_card_expiration_year']) : '';
+        if( !in_array( strtolower( $card_type ), $this->settings['enable_credit_card']) ){
+            wc_add_notice( __( "Not supported for this credit card type.", "paypal-for-woocommerce"),"error");
+            return false;
+        }
         // Format card expiration data
         $card_exp_month = (int) $card_exp_month;
         if ($card_exp_month < 10) :
@@ -1144,5 +1165,25 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
             return new WP_Error( 'paypal-error', $PayPalResult['L_LONGMESSAGE0'] );
         }
 
+    }
+    /**
+     * get_icon function.
+     *
+     * @return string
+     */
+    public function get_icon() {
+
+        $icon = $this->icon ? '<img src="' . WC_HTTPS::force_https_url( $this->icon ) . '" alt="' . esc_attr( $this->get_title() ) . '" />' : '';
+        if($this->icon && isset( $this->settings['enable_credit_card']) ){
+            ob_start();
+            foreach( $this->settings['enable_credit_card'] as $image ){
+                ?>
+                <img src="<?php echo WP_PLUGIN_URL . "/" . plugin_basename( dirname( dirname( __FILE__ ) ) ) . '/assets/images/'.$image.'.png'; ?>" alt="<?php echo $image; ?>" />
+            <?php
+            }
+            $icon = ob_get_clean();
+        }
+
+        return apply_filters( 'woocommerce_gateway_icon', $icon, $this->id );
     }
 }

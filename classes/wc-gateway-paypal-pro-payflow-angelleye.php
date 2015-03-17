@@ -90,7 +90,14 @@ class WC_Gateway_PayPal_Pro_PayFlow_AngellEYE extends WC_Payment_Gateway {
      * Initialise Gateway Settings Form Fields
      */
     function init_form_fields() {
-
+        $list_credit_card_type = array(
+            'visa' => 'Visa',
+            'mastercard' => 'MasterCard',
+            'discover' => 'Discover',
+            'amex' => 'AmEx',
+            'jcb' => 'JCB',
+        );
+        $payflow_card_type = apply_filters( 'angelleye_payflow_credit_card_type', $list_credit_card_type );
     	$this->form_fields = array(
 			'enabled'         => array(
 							'title'       => __( 'Enable/Disable', 'paypal-for-woocommerce' ),
@@ -206,6 +213,12 @@ of the user authorized to process transactions. Otherwise, leave this field blan
 for the Payflow SDK. If you purchased your account directly from PayPal, use PayPal or leave blank.', 'paypal-for-woocommerce' ),
 							'default'     => 'PayPal'
 						),
+            'enable_credit_card'  => array(
+                'title'       => __( 'Enable credit cards', 'paypal-for-woocommerce' ),
+                'type'        => 'multiselect',
+                'class' => 'chosen_select',
+                'options'     => $payflow_card_type
+            )
 			);
     }
 
@@ -248,6 +261,10 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
 		$card_number = ! empty( $_POST['paypal_pro_payflow_card_number']) ? str_replace( array( ' ', '-' ), '', wc_clean( $_POST['paypal_pro_payflow_card_number'] ) ) : '';
 		$card_csc    = ! empty( $_POST['paypal_pro_payflow_card_csc']) ? wc_clean( $_POST['paypal_pro_payflow_card_csc'] ) : '';
 		$card_exp    = ! empty( $_POST['paypal_pro_payflow_card_expiration']) ? wc_clean( $_POST['paypal_pro_payflow_card_expiration'] ) : '';
+        if( !in_array( $this->get_cc_type( $card_number ), $this->settings['enable_credit_card']) ){
+            wc_add_notice( __( "Not supported for this credit card type.", "paypal-for-woocommerce"),"error");
+            return false;
+        }
 
 		// Do payment with paypal
 		return $this->do_payment( $order, $card_number, $card_exp, $card_csc );
@@ -646,6 +663,7 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
         </style>
 		<fieldset class="paypal_pro_credit_card_form">
 			<p class="form-row form-row-wide validate-required paypal_pro_payflow_card_number_wrap">
+                <span class="error angelleye_credit_card" style="display: none;"><?php _e( "Not supported for this credit card type.", 'paypal-for-woocommerce'); ?></span>
 				<label for="paypal_pro_payflow_card_number"><?php _e( "Card number", "wc_paypal_pro" ) ?></label>
 				<input type="text" class="input-text" name="paypal_pro_payflow_card_number" id="paypal_pro_payflow_card_number" pattern="[0-9]{12,19}" />
 				<span id="paypal_pro_payflow_card_type_image"></span>
@@ -670,42 +688,53 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
 			</p>*/ ?>
 		</fieldset>
 		<?php
+        $list_item = array();
+        if( sizeof($this->settings['enable_credit_card'])){
+            foreach( $this->settings['enable_credit_card'] as $card_type ){
+                $list_item[] = "'{$card_type}'";
+            }
+        }
+        ob_start();
+        ?>
+            /*jQuery('body').bind('updated_checkout', function() {
+             jQuery('#paypal_pro_payflow_card_type').parent().hide(); // Use JS detection if JS enabled
+             });*/
+            jQuery('form.checkout, #order_review').on( 'keyup change blur', '#paypal_pro_payflow_card_number', function() {
+                var csc = jQuery('#paypal_pro_payflow_card_csc').parent();
+                var msg = jQuery('.error.angelleye_credit_card');
+                var card_number = jQuery('#paypal_pro_payflow_card_number').val();
+                var list_card_types = [<?php echo implode( ",", $list_item )  ?>];
 
-        wc_enqueue_js( "
-			/*jQuery('body').bind('updated_checkout', function() {
-				jQuery('#paypal_pro_payflow_card_type').parent().hide(); // Use JS detection if JS enabled
-			});*/
+                jQuery('#paypal_pro_payflow_card_type_image').attr('class', '');
 
-			jQuery('form.checkout, #order_review').on( 'keyup change blur', '#paypal_pro_payflow_card_number', function() {
-				var csc = jQuery('#paypal_pro_payflow_card_csc').parent();
-				var card_number = jQuery('#paypal_pro_payflow_card_number').val();
+                if ( is_valid_card( card_number ) ) {
+                    var card_type = get_card_type( card_number );
 
-				jQuery('#paypal_pro_payflow_card_type_image').attr('class', '');
+                    if ( card_type ) {
+                        jQuery('#paypal_pro_payflow_card_type_image').addClass( card_type );
 
-				if ( is_valid_card( card_number ) ) {
+                        if ( jQuery.inArray( card_type, list_card_types )!=-1  ) {
+                            csc.show();
+                            msg.hide();
+                        } else {
+                            csc.hide();
+                            msg.show();
+                        }
 
-					var card_type = get_card_type( card_number );
+                        //jQuery('#paypal_pro_payflow_card_type').val(card_type);
+                    } else {
+                        //jQuery('#paypal_pro_payflow_card_type').val('other');
+                    }
 
-					if ( card_type ) {
-						jQuery('#paypal_pro_payflow_card_type_image').addClass( card_type );
+                    jQuery('#paypal_pro_payflow_card_number').parent().addClass('woocommerce-validated').removeClass('woocommerce-invalid');
+                } else {
+                    jQuery('#paypal_pro_payflow_card_number').parent().removeClass('woocommerce-validated').addClass('woocommerce-invalid');
+                }
+            }).change();
+        <?php
+        $js = ob_get_clean();
 
-						if ( card_type == 'visa' || card_type == 'amex' || card_type == 'discover' || card_type == 'mastercard' || card_type == 'jcb' ) {
-							csc.show();
-						} else {
-							csc.hide();
-						}
-
-						//jQuery('#paypal_pro_payflow_card_type').val(card_type);
-					} else {
-						//jQuery('#paypal_pro_payflow_card_type').val('other');
-					}
-
-					jQuery('#paypal_pro_payflow_card_number').parent().addClass('woocommerce-validated').removeClass('woocommerce-invalid');
-				} else {
-					jQuery('#paypal_pro_payflow_card_number').parent().removeClass('woocommerce-validated').addClass('woocommerce-invalid');
-				}
-			}).change();
-		" );
+        wc_enqueue_js($js);
 	}
 
 
@@ -782,5 +811,69 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
             return new WP_Error( 'paypal-error', $PayPalResult['RESPMSG'] );
         }
         return false;
+    }
+    /**
+     * get_icon function.
+     *
+     * @return string
+     */
+    public function get_icon() {
+
+        $icon = $this->icon ? '<img src="' . WC_HTTPS::force_https_url( $this->icon ) . '" alt="' . esc_attr( $this->get_title() ) . '" />' : '';
+        if($this->icon && isset( $this->settings['enable_credit_card']) ){
+            ob_start();
+            foreach( $this->settings['enable_credit_card'] as $image ){
+                ?>
+                <img src="<?php echo WP_PLUGIN_URL . "/" . plugin_basename( dirname( dirname( __FILE__ ) ) ) . '/assets/images/'.$image.'.png'; ?>" alt="<?php echo $image; ?>" />
+                <?php
+            }
+            $icon = ob_get_clean();
+        }
+
+        return apply_filters( 'woocommerce_gateway_icon', $icon, $this->id );
+    }
+    function get_cc_type($cc_number) {
+        do_action( 'angelleye_before_validate_credit_card', $cc_number );
+        /* Validate; return value is card type if valid. */
+        $card_type = "";
+        $card_regexes = array(
+            "/^4\d{12}(\d\d\d){0,1}$/" => "visa",
+            "/^5[12345]\d{14}$/"       => "mastercard",
+            "/^3[47]\d{13}$/"          => "amex",
+            "/^6011\d{12}$/"           => "discover",
+            "/^30[012345]\d{11}$/"     => "diners",
+            "/^3[68]\d{12}$/"          => "diners",
+        );
+        $card_regexes = apply_filters( 'angelleye_credit_card_regexes', $card_regexes );
+
+        foreach ($card_regexes as $regex => $type) {
+            if (preg_match($regex, $cc_number)) {
+                $card_type = $type;
+                break;
+            }
+        }
+
+        /*  mod 10 checksum algorithm  */
+        $revcode = strrev($cc_number);
+        $checksum = 0;
+
+        for ($i = 0; $i < strlen($revcode); $i++) {
+            $current_num = intval($revcode[$i]);
+            if($i & 1) {  /* Odd  position */
+                $current_num *= 2;
+            }
+            /* Split digits and add. */
+            $checksum += $current_num % 10; if
+            ($current_num >  9) {
+                $checksum += 1;
+            }
+        }
+        do_action( 'angelleye_after_validate_credit_card', $cc_number );
+
+        if ($checksum % 10 == 0) {
+            return $card_type;
+        } else {
+            return 'undefined';
+        }
     }
 }
