@@ -74,6 +74,7 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
         $this->liability_shift 		= isset( $this->settings['liability_shift'] ) && $this->settings['liability_shift'] == 'yes' ? true : false;
         $this->debug				= isset( $this->settings['debug'] ) && $this->settings['debug'] == 'yes' ? true : false;
         $this->send_items			= true;//isset( $this->settings['send_items'] ) && $this->settings['send_items'] == 'yes' ? true : false;
+        $this->disable_credit_card	= isset( $this->settings['disable_credit_card'] ) ? $this->settings['disable_credit_card'] : array();
         // 3DS
         if ( $this->enable_3dsecure ) {
             $this->centinel_pid		= $this->settings['centinel_pid'];
@@ -118,6 +119,14 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
      * Initialise Gateway Settings Form Fields
      */
     function init_form_fields() {
+        $list_credit_card_type = array(
+                    'visa' => 'Visa',
+                    'mastercard' => 'MasterCard',
+                    'discover' => 'Discover',
+                    'amex' => 'AmEx',
+                    'jcb' => 'JCB',
+                );
+        $payflow_card_type = apply_filters( 'angelleye_paypro_credit_card_type', $list_credit_card_type );
         $this->form_fields = array(
             'enabled' => array(
                 'title' => __( 'Enable/Disable', 'paypal-for-woocommerce' ),
@@ -159,13 +168,13 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
                 'title' => __( 'Error Email Notifications', 'paypal-for-woocommerce' ),
                 'type' => 'checkbox',
                 'label' => __( 'Enable admin email notifications for errors.', 'paypal-for-woocommerce' ),
-                'default' => 'yes', 
+                'default' => 'yes',
 				'description' => __( 'This will send a detailed error email to the WordPress site administrator if a PayPal API error occurs.','paypal-for-woocommerce' )
             ),
             'sandbox_api_username' => array(
                 'title' => __( 'Sandbox API Username', 'paypal-for-woocommerce' ),
                 'type' => 'text',
-                'description' => __( 'Create sandbox accounts and obtain API credentials from within your 
+                'description' => __( 'Create sandbox accounts and obtain API credentials from within your
 									<a href="http://developer.paypal.com">PayPal developer account</a>.', 'paypal-for-woocommerce' ),
                 'default' => ''
             ),
@@ -182,7 +191,7 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
             'api_username' => array(
                 'title' => __( 'Live API Username', 'paypal-for-woocommerce' ),
                 'type' => 'text',
-                'description' => __( 'Get your live account API credentials from your PayPal account profile under the API Access section <br />or by using 
+                'description' => __( 'Get your live account API credentials from your PayPal account profile under the API Access section <br />or by using
 									<a target="_blank" href="https://www.paypal.com/us/cgi-bin/webscr?cmd=_login-api-run">this tool</a>.', 'paypal-for-woocommerce' ),
                 'default' => ''
             ),
@@ -237,7 +246,7 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
                     'detailed' => __( 'Detailed' , 'paypal-for-woocommerce' ),
                     'generic' => __( 'Generic' , 'paypal-for-woocommerce' )
                 ),
-				'description' => __( 'Detailed displays actual errors returned from PayPal.  Generic displays general errors that do not reveal details 
+				'description' => __( 'Detailed displays actual errors returned from PayPal.  Generic displays general errors that do not reveal details
 									and helps to prevent fraudulant activity on your site.' , 'paypal-for-woocommerce')
             ),
             /*'send_items' => array(
@@ -247,6 +256,12 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
                 'description' => __( 'Sends line items to PayPal. If you experience rounding errors this can be disabled.', 'paypal-for-woocommerce' ),
                 'default' => 'no'
             ),*/
+            'disable_credit_card'  => array(
+                'title'       => __( 'Disable  credit cards', 'paypal-for-woocommerce' ),
+                'type'        => 'multiselect',
+                'class' => 'chosen_select',
+                'options'     => $payflow_card_type
+            ),
             'debug' => array(
                 'title' => __( 'Debug Log', 'woocommerce' ),
                 'type' => 'checkbox',
@@ -353,7 +368,7 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
             <p class="form-row form-row-last">
                 <label for="paypal_pro_cart_type"><?php _e("Card type", 'paypal-for-woocommerce') ?> <span class="required">*</span></label>
                 <select id="paypal_pro_card_type" name="paypal_pro_card_type" class="woocommerce-select">
-                    <?php foreach ($available_cards as $card => $label) : ?>
+                    <?php foreach ($available_cards as $card => $label) : if( in_array( strtolower( $card ), $this->disable_credit_card)) continue;?>
                     <option value="<?php echo $card ?>"><?php echo $label; ?></option>
                         <?php endforeach; ?>
                 </select>
@@ -466,6 +481,10 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
         $card_csc 			= isset($_POST['paypal_pro_card_csc']) ? wc_clean($_POST['paypal_pro_card_csc']) : '';
         $card_exp_month		= isset($_POST['paypal_pro_card_expiration_month']) ? wc_clean($_POST['paypal_pro_card_expiration_month']) : '';
         $card_exp_year 		= isset($_POST['paypal_pro_card_expiration_year']) ? wc_clean($_POST['paypal_pro_card_expiration_year']) : '';
+        if( in_array( strtolower( $card_type ), $this->disable_credit_card ) ){
+            wc_add_notice( __( "Not supported for this credit card type.", "paypal-for-woocommerce"),"error");
+            return false;
+        }
         // Format card expiration data
         $card_exp_month = (int) $card_exp_month;
         if ($card_exp_month < 10) :
@@ -1172,5 +1191,20 @@ class WC_Gateway_PayPal_Pro_AngellEYE extends WC_Payment_Gateway {
             return new WP_Error( 'ec_refund-error', $pc_message );
         }
 
+    }
+    /**
+     * Validate Multiselect Field.
+     *
+     * Make sure the data is escaped correctly, etc.
+     *
+     * @param mixed $key
+     * @since 1.0.0
+     * @return string
+     */
+    public function validate_multiselect_field( $key ) {
+
+        $value = array_map( 'wc_clean', array_map( 'stripslashes', (array) $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
+
+        return $value;
     }
 }
