@@ -608,17 +608,20 @@ class Angelleye_PayPal
 		{
 			curl_setopt($curl, CURLOPT_SSLCERT, $this->PathToCertKeyPEM);
 		}
+
         if(curl_exec($curl) === false)
         {
             $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $string_return = 'L_ERRORCODE0='.$httpCode.'&L_SHORTMESSAGE0='.curl_error($curl).'&L_LONGMESSAGE0='.curl_error($curl).'&L_SEVERITYCODE0='.$httpCode;
+            curl_close($curl);
             return $string_return;
         }
         else {
             $Response = curl_exec($curl);
+            curl_close($curl);
+            return $Response;
         }
-		curl_close($curl);
-		return $Response;	
+
 	}
 	
 	/**
@@ -1342,12 +1345,6 @@ class Angelleye_PayPal
 		// Now that we have each chunk we need to go ahead and append them all together for our entire NVP string
 		$NVPRequest = $this->NVPCredentials . $DPFieldsNVP . $CCDetailsNVP . $PayerInfoNVP . $PayerNameNVP . $BillingAddressNVP . $PaymentDetailsNVP . $OrderItemsNVP . $ShippingAddressNVP . $Secure3DNVP;
 		$NVPResponse = $this->CURLRequest($NVPRequest);
-        /**
-         * Check Curl Error
-         */
-        if( isset( $PayPalResult['CURL_ERROR'] ) ){
-            return $PayPalResult;
-        }
 		$NVPRequestArray = $this->NVPToArray($NVPRequest);
 		$NVPResponseArray = $this->NVPToArray($NVPResponse);
 		
@@ -1551,9 +1548,6 @@ class Angelleye_PayPal
 			
 		$NVPRequest = $this->NVPCredentials . $GECDFieldsNVP;
 		$NVPResponse = $this->CURLRequest($NVPRequest);
-        if( isset( $NVPResponse ) && is_array( $NVPResponse ) && !empty( $NVPResponse['CURL_ERROR'] ) ){
-            return $NVPResponse;
-        }
 		$NVPRequestArray = $this->NVPToArray($NVPRequest);
 		$NVPResponseArray = $this->NVPToArray($NVPResponse);
 		
@@ -1632,9 +1626,6 @@ class Angelleye_PayPal
 		
 		$NVPRequest = $this->NVPCredentials . $DECPFieldsNVP . $PaymentsNVP . $UserSelectedOptionsNVP;
 		$NVPResponse = $this->CURLRequest($NVPRequest);
-        if( isset( $NVPResponse ) && is_array( $NVPResponse ) && !empty( $NVPResponse['CURL_ERROR'] ) ){
-            return $NVPResponse;
-        }
 		$NVPRequestArray = $this->NVPToArray($NVPRequest);
 		$NVPResponseArray = $this->NVPToArray($NVPResponse);
 		

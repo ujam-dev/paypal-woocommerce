@@ -116,17 +116,18 @@ class Angelleye_PayPal_PayFlow extends Angelleye_PayPal
 		// is an issue.
         if(curl_exec($curl) === false)
         {
-            return array( 'CURL_ERROR' =>curl_error($curl) );
+            $Response = array( 'CURL_ERROR' =>curl_error($curl) );
+            curl_close($curl);
+
+            return $Response;
         }
         else
         {
-
             $i=1;
             while ($i++ <= 3)
             {
                 $Response = curl_exec($curl);
                 $headers = curl_getinfo($curl);
-
                 if ($headers['http_code'] != 200) {
                     sleep(5);  // Let's wait 5 seconds to see if its a temporary network issue.
                 }
@@ -136,11 +137,10 @@ class Angelleye_PayPal_PayFlow extends Angelleye_PayPal
                     break;
                 }
             }
+            curl_close($curl);
+
+            return $Response;
         }
-	
-		curl_close($curl);
-	
-		return $Response;
 	}
 	
 	
