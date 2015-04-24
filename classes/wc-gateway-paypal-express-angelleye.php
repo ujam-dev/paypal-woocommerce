@@ -687,7 +687,14 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 
                 WC()->cart->calculate_totals();
                 //$paymentAmount    = WC()->cart->get_total();
-                $paymentAmount	  = number_format(WC()->cart->total,2,'.','');
+                $this->remove_session( 'order_id' );
+                $order_id = $this->get_session( 'order_id' );
+                if( empty( $order_id ) ) {
+                    $order_id = WC()->checkout()->create_order();
+                    $this->set_session('order_id', $order_id );
+                }
+                $order = new WC_Order( $order_id );
+                $paymentAmount	  = number_format( $order->order_total, 2,'.','');
 
                 //Check if review order page is exist, otherwise re-create it on the fly
                 $review_order_page_url =  get_permalink( wc_get_page_id( 'review_order' ) );
@@ -700,7 +707,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 $returnURL        = urlencode( add_query_arg( 'pp_action', 'revieworder', $review_order_page_url ) );
                 $cancelURL        = isset( $this->settings['cancel_page'] ) ? get_the_permalink( $this->settings['cancel_page'] ) : WC()->cart->get_cart_url();
                 $cancelURL        = apply_filters( 'angelleye_express_cancel_url', urlencode( $cancelURL ) );
-                $resArray         = $this->CallSetExpressCheckout( $paymentAmount, $returnURL, $cancelURL, $usePayPalCredit, $posted );
+                $resArray         = $this->CallSetExpressCheckout( $order_id, $paymentAmount, $returnURL, $cancelURL, $usePayPalCredit, $posted );
                 $ack              = strtoupper( $resArray["ACK"] );
 
                 /**
@@ -930,8 +937,10 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 if ( ! defined( 'WOOCOMMERCE_CHECKOUT' ) )
                     define( 'WOOCOMMERCE_CHECKOUT', true );
                 WC()->cart->calculate_totals();
-                $order_id = WC()->session->get( 'order_id' );
-                if (empty($order_id)){
+                $order_id = $this->get_session( 'order_id' ) ;
+                if( !empty( $order_id ) ){
+                    $order_id = $this->get_session( 'order_id' );
+                }else {
                     $order_id = WC()->checkout()->create_order();
                 }
 
@@ -985,7 +994,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 $order = new WC_Order( $order_id );
                 do_action( 'woocommerce_ppe_do_payaction', $order );
                 $this->add_log( '...Order Total: ' . $order->order_total );
-                $this->add_log( '...Cart Total: '.WC()->cart->get_total() );
+                $this->add_log( '...Cart Total: '.WC()->cart->total );
                 $this->add_log( "...Token:" . $this->get_session( 'TOKEN' ) );
                 $result = $this->ConfirmPayment( $order->order_total );
 
@@ -1033,6 +1042,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                     $addressstatus_note .= ucfirst( $REVIEW_RESULT['ADDRESSSTATUS'] );
                     $order->add_order_note($addressstatus_note);
                     $order->payment_complete($result['PAYMENTINFO_0_TRANSACTIONID']);
+                    $this->remove_session( 'order_id' );
 
                     //add hook
                     do_action( 'woocommerce_checkout_order_processed', $order_id );
@@ -1110,13 +1120,19 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
      * @returnURL (string) URL for PayPal to send the buyer to after review and continue from PayPal.
      * @cancelURL (string) URL for PayPal to send the buyer to if they cancel the payment.
      */
-    function CallSetExpressCheckout($paymentAmount,$returnURL,$cancelURL,$usePayPalCredit = false, $posted)
+    function CallSetExpressCheckout( $order_id, $paymentAmount,$returnURL,$cancelURL,$usePayPalCredit = false, $posted)
     {
+        $order = new WC_Order( $order_id );
         /*
          * Display message to user if session has expired.
          */
-        if(sizeof(WC()->cart->get_cart()) == 0)
+        /*if(sizeof(WC()->cart->get_cart()) == 0)
         {
+            $ms = sprintf(__( 'Sorry, your session has expired. <a href=%s>Return to homepage &rarr;</a>', 'paypal-for-woocommerce' ), '"'.home_url().'"');
+            $set_ec_message = apply_filters( 'angelleye_set_ec_message', $ms );
+            wc_add_notice( $set_ec_message, "error" );
+        }*/
+        if( sizeof( $order->get_items() ) <= 0 ){
             $ms = sprintf(__( 'Sorry, your session has expired. <a href=%s>Return to homepage &rarr;</a>', 'paypal-for-woocommerce' ), '"'.home_url().'"');
             $set_ec_message = apply_filters( 'angelleye_set_ec_message', $ms );
             wc_add_notice( $set_ec_message, "error" );
@@ -1246,18 +1262,18 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
          */
         if(get_option('woocommerce_prices_include_tax') == 'yes')
         {
-            $shipping 		= WC()->cart->shipping_total + WC()->cart->shipping_tax_total;
+            $shipping 		= $order->get_total_shipping() - $order->get_shipping_tax();
             $tax			= '0.00';
         }
         else
         {
-            $shipping 		= WC()->cart->shipping_total;
-            $tax 			= WC()->cart->get_taxes_total();
+            $shipping 		= $order->get_total_shipping();
+            $tax 			= $order->get_total_tax();
         }
 
         $Payments = array();
         $Payment = array(
-            'amt' => number_format(WC()->cart->total,2,'.',''), 							// Required.  The total cost of the transaction to the customer.  If shipping cost and tax charges are known, include them in this value.  If not, this value should be the current sub-total of the order.
+            'amt' => number_format( $order->order_total,2,'.',''), 							// Required.  The total cost of the transaction to the customer.  If shipping cost and tax charges are known, include them in this value.  If not, this value should be the current sub-total of the order.
             'currencycode' => get_woocommerce_currency(), 					// A three-character currency code.  Default is USD.
             'shippingamt' => number_format($shipping,2,'.',''), 					// Total shipping costs for this order.  If you specify SHIPPINGAMT you mut also specify a value for ITEMAMT.
             'shippingdiscamt' => '', 				// Shipping discount for this order, specified as a negative number.
@@ -1288,7 +1304,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
          * If checkout like regular payment
          */
 
-        if (!empty($posted) && WC()->cart->needs_shipping() ) {
+        if (!empty($posted) && $order->needs_shipping_address() ) {
             $SECFields['addroverride']      = 1;
             if (@$posted['ship_to_different_address']) {
                 $Payment['shiptoname']          = $posted['shipping_first_name'].' '.$posted['shipping_last_name'];
@@ -1314,46 +1330,40 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 
         $PaymentOrderItems = array();
         $ctr = $total_items = $total_discount = $total_tax = $order_total = 0;
-        foreach(WC()->cart->get_cart() as $cart_item_key => $values)
+        foreach($order->get_items() as $item )
         {
             /*
              * Get product data from WooCommerce
              */
-            $_product          = $values['data'];
-            $qty               = absint( $values['quantity'] );
+            $_product = $order->get_product_from_item($item);
+            $qty               = absint( $item['qty'] );
             $sku = $_product->get_sku();
-            $values['name'] = html_entity_decode($_product->get_title(), ENT_NOQUOTES, 'UTF-8');
+            $product_name = html_entity_decode($_product->get_title(), ENT_NOQUOTES, 'UTF-8');
 
             /*
              * Append variation data to name.
              */
             if ($_product->product_type=='variation') {
 
-                $meta = WC()->cart->get_item_data($values, true);
-
                 if (empty($sku)) {
                     $sku = $_product->parent->get_sku();
                 }
 
+                $item_meta = new WC_Order_Item_Meta( $item['item_meta'] );
+                $meta = $item_meta->display(true, true);
                 if (!empty($meta)) {
-                    $values['name'] .= " - ". str_replace(", \n", " - ",$meta);
+                    $product_name .= " - ".str_replace(", \n", " - ",$meta);
                 }
             }
 
-            /*
-             * Set price based on tax option.
-             */
-            if(get_option('woocommerce_prices_include_tax') == 'yes')
-            {
-                $product_price = number_format($_product->get_price_including_tax(),2,'.','');
-            }
-            else
-            {
-                $product_price = number_format($_product->get_price_excluding_tax(),2,'.','');
+            if (get_option('woocommerce_prices_include_tax') == 'yes') {
+                $product_price = $order->get_item_subtotal($item, true, false);
+            } else {
+                $product_price = $order->get_item_subtotal($item, false, true);
             }
 
             $Item = array(
-                'name' => $values['name'], 								// Item name. 127 char max.
+                'name' => $product_name, 								// Item name. 127 char max.
                 'desc' => '', 								// Item description. 127 char max.
                 'amt' => number_format($product_price,2,'.',''), 								// Cost of item.
                 'number' => $sku, 							// Item number.  127 char max.
@@ -1376,7 +1386,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             );
             array_push($PaymentOrderItems, $Item);
 
-            $total_items += $product_price*$values['quantity'];
+            $total_items += $product_price * $qty;
             $ctr++;
         }
 
@@ -1416,35 +1426,33 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
         /*
          * Get discount(s)
          */
-        if(WC()->cart->get_cart_discount_total())
+        if($order->get_total_discount())
         {
-            foreach(WC()->cart->get_coupons('cart') as $code => $coupon)
-            {
-                $Item = array(
-                    'name' => 'Cart Discount',
-                    'number' => $code,
-                    'qty' => '1',
-                    'amt' => '-'.number_format(WC()->cart->coupon_discount_amounts[$code],2,'.','')
-                );
-                array_push($PaymentOrderItems,$Item);
+            if( sizeof( WC()->cart->get_coupons('cart') ) > 0) {
+                foreach (WC()->cart->get_coupons('cart') as $code => $coupon) {
+                    $Item = array(
+                        'name' => 'Cart Discount',
+                        'number' => $code,
+                        'qty' => '1',
+                        'amt' => '-' . number_format(WC()->cart->coupon_discount_amounts[$code], 2, '.', '')
+                    );
+                    array_push($PaymentOrderItems, $Item);
+                }
             }
-            $total_discount -= WC()->cart->get_cart_discount_total();
+            if( sizeof( WC()->cart->get_coupons('order') ) ) {
+                foreach (WC()->cart->get_coupons('order') as $code => $coupon) {
+                    $Item = array(
+                        'name' => 'Order Discount',
+                        'number' => $code,
+                        'qty' => '1',
+                        'amt' => '-' . number_format(WC()->cart->coupon_discount_amounts[$code], 2, '.', '')
+                    );
+                    array_push($PaymentOrderItems, $Item);
+                }
+            }
+            $total_discount -= $order->get_total_discount();
         }
 
-        if(WC()->cart->get_order_discount_total())
-        {
-            foreach(WC()->cart->get_coupons('order') as $code => $coupon)
-            {
-                $Item = array(
-                    'name' => 'Order Discount',
-                    'number' => $code,
-                    'qty' => '1',
-                    'amt' => '-'.number_format(WC()->cart->coupon_discount_amounts[$code],2,'.','')
-                );
-                array_push($PaymentOrderItems,$Item);
-            }
-            $total_discount -= WC()->cart->get_order_discount_total();
-        }
         if( $this->send_items ) {
             /*
              * Now that all the order items are gathered, including discounts,
@@ -2210,8 +2218,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
     /**
      * Regular checkout process
      */
-    function regular_checkout( $order_id, $posted ) {
-        $this->set_session( 'order_id', $order_id );
+    function regular_checkout($posted) {
         if ($posted['payment_method'] == 'paypal_express' && wc_notice_count( 'error' ) == 0 ) {
             $this->paypal_express_checkout($posted);
         }
