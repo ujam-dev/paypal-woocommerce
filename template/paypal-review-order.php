@@ -15,7 +15,9 @@ $show_login = apply_filters('paypal-for-woocommerce-show-login', !is_user_logged
     }
 </style>
 
-
+<?php wc_print_notices();
+wc_clear_notices();
+?>
 <form class="angelleye_checkout" method="POST" action="<?php echo add_query_arg( 'pp_action', 'payaction', add_query_arg( 'wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url( '/' ) ) );?>">
 
 <div id="paypalexpress_order_review">
@@ -114,6 +116,7 @@ $show_login = apply_filters('paypal-for-woocommerce-show-login', !is_user_logged
         </div><!-- /.col-2 -->
     </div><!-- /.col2-set -->
 <?php endif; ?>
+
 <?php if ( $show_login ):  ?>
 </form>
     <style type="text/css">
@@ -187,6 +190,12 @@ $show_login = apply_filters('paypal-for-woocommerce-show-login', !is_user_logged
         </p>
     </form>
 <?php else:
+if ( wc_get_page_id( 'terms' ) > 0 && apply_filters( 'woocommerce_checkout_show_terms', true ) ) : ?>
+			<p class="form-row terms">
+				<label for="terms" class="checkbox"><?php printf( __( 'I&rsquo;ve read and accept the <a href="%s" target="_blank">terms &amp; conditions</a>', 'woocommerce' ), esc_url( wc_get_page_permalink( 'terms' ) ) ); ?></label>
+				<input type="checkbox" class="input-checkbox" name="terms" <?php checked( apply_filters( 'woocommerce_terms_is_checked_default', isset( $_POST['terms'] ) ), true ); ?> id="terms" />
+			</p>
+<?php endif;
 global $pp_settings;
 $cancel_url = isset( $pp_settings['cancel_page'] ) ? get_permalink( $pp_settings['cancel_page'] ) : $woocommerce->cart->get_cart_url();
 $cancel_url = apply_filters( 'angelleye_review_order_cance_url', $cancel_url );
