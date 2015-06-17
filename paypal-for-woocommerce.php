@@ -85,7 +85,7 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
             add_action('admin_footer-edit.php', array( $this, 'angelleye_bulk_admin_footer'), 11);
             add_action('load-edit.php', array( $this, 'angelleye_bulk_action' ), 11 );
             add_action('admin_notices', array( $this, 'angelleye_bulk_admin_notices' ) );
-            //add_filter( 'bulk_actions-edit-product', array( $this, 'my_custom_bulk_actions' ), 11 );
+            add_filter( 'bulk_actions-edit-product', array( $this, 'my_custom_bulk_actions' ), 11 );
             
         }
 
@@ -621,8 +621,11 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
 	                case 'enable_shipping_address_for_downloadable_products':
 	                    $updated_count = 0;
 	                    foreach ($post_ids as $post_id) {
-	                        update_post_meta( $post_id, '_no_shipping_required', 'true');
-	                        $updated_count++;
+	                    	$product = get_product( $post_id );
+							if( $product->is_type( 'downloadable' ) ){
+								update_post_meta( $post_id, '_no_shipping_required', 'true');
+	                        	$updated_count++;
+							}
 	                    }
 	                    $sendback = add_query_arg(array('enable_shipping_address_for_downloadable_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
 	                    $sendback = esc_url_raw($sendback);
@@ -630,8 +633,11 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
 	                case 'disable_shipping_address_for_downloadable_products':
 	                    $updated_count = 0;
 	                    foreach ($post_ids as $post_id) {
-	                        update_post_meta( $post_id, '_no_shipping_required', 'false');
-	                        $updated_count++;
+	                    	$product = get_product( $post_id );
+							if( $product->is_type( 'downloadable' ) ){
+								update_post_meta( $post_id, '_no_shipping_required', 'false');
+	                        	$updated_count++;
+							}
 	                    }
 	                    $sendback = add_query_arg(array('disable_shipping_address_for_downloadable_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
 	                    $sendback = esc_url_raw($sendback);
@@ -639,17 +645,23 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
 	                case 'enable_shipping_address_for_virtual_products':
 	                    $updated_count = 0;
 	                    foreach ($post_ids as $post_id) {
-	                        update_post_meta( $post_id, '_no_shipping_required', 'true');
-	                        $updated_count++;
+	                    	$product = get_product( $post_id );
+							if( $product->is_type( 'virtual' ) ){
+								update_post_meta( $post_id, '_no_shipping_required', 'true');
+	                        	$updated_count++;
+							}
 	                    }
 	                    $sendback = add_query_arg(array('enable_shipping_address_for_virtual_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
 	                    $sendback = esc_url_raw($sendback);
 	                    break;
 	                case 'disable_shipping_address_for_virtual_products':
-	                    $updated_count = 0;
+	                   $updated_count = 0;
 	                    foreach ($post_ids as $post_id) {
-	                        update_post_meta( $post_id, '_no_shipping_required', 'false');
-	                        $updated_count++;
+	                    	$product = get_product( $post_id );
+							if( $product->is_type( 'virtual' ) ){
+								update_post_meta( $post_id, '_no_shipping_required', 'false');
+	                        	$updated_count++;
+							}
 	                    }
 	                    $sendback = add_query_arg(array('disable_shipping_address_for_virtual_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
 	                    $sendback = esc_url_raw($sendback);
@@ -668,6 +680,31 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
 
 	        if($pagenow == 'edit.php' && $post_type == 'product' && isset($_REQUEST['enable_shipping_address_for_all_products']) && (int) $_REQUEST['enable_shipping_address_for_all_products'] && ($_REQUEST['enable_shipping_address_for_all_products'] > 0)) {
 	            $message = sprintf( __( 'Shipping Address enabled for %s products.', $this->plugin_slug ), number_format_i18n( $_REQUEST['enable_shipping_address_for_all_products'] ) );
+	            echo '<div class="updated"><p>'.$message.'</p></div>';
+	        }
+	        
+	        if($pagenow == 'edit.php' && $post_type == 'product' && isset($_REQUEST['disable_shipping_address_for_all_products']) && (int) $_REQUEST['disable_shipping_address_for_all_products'] && ($_REQUEST['disable_shipping_address_for_all_products'] > 0)) {
+	            $message = sprintf( __( 'Shipping Address disabled for %s products.', $this->plugin_slug ), number_format_i18n( $_REQUEST['disable_shipping_address_for_all_products'] ) );
+	            echo '<div class="updated"><p>'.$message.'</p></div>';
+	        }
+	       
+	        if($pagenow == 'edit.php' && $post_type == 'product' && isset($_REQUEST['enable_shipping_address_for_downloadable_products']) && (int) $_REQUEST['enable_shipping_address_for_downloadable_products'] && ($_REQUEST['enable_shipping_address_for_downloadable_products'] > 0)) {
+	            $message = sprintf( __( 'Shipping Address enabled for %s products.', $this->plugin_slug ), number_format_i18n( $_REQUEST['enable_shipping_address_for_downloadable_products'] ) );
+	            echo '<div class="updated"><p>'.$message.'</p></div>';
+	        }
+	        
+	        if($pagenow == 'edit.php' && $post_type == 'product' && isset($_REQUEST['disable_shipping_address_for_downloadable_products']) && (int) $_REQUEST['disable_shipping_address_for_downloadable_products'] && ($_REQUEST['disable_shipping_address_for_downloadable_products'] > 0)) {
+	            $message = sprintf( __( 'Shipping Address disabled for %s products.', $this->plugin_slug ), number_format_i18n( $_REQUEST['disable_shipping_address_for_downloadable_products'] ) );
+	            echo '<div class="updated"><p>'.$message.'</p></div>';
+	        }
+	        
+	        if($pagenow == 'edit.php' && $post_type == 'product' && isset($_REQUEST['enable_shipping_address_for_virtual_products']) && (int) $_REQUEST['enable_shipping_address_for_virtual_products'] && ($_REQUEST['enable_shipping_address_for_virtual_products'] > 0)) {
+	            $message = sprintf( __( 'Shipping Address enabled for %s products.', $this->plugin_slug ), number_format_i18n( $_REQUEST['enable_shipping_address_for_virtual_products'] ) );
+	            echo '<div class="updated"><p>'.$message.'</p></div>';
+	        }
+	        
+	        if($pagenow == 'edit.php' && $post_type == 'product' && isset($_REQUEST['disable_shipping_address_for_virtual_products']) && (int) $_REQUEST['disable_shipping_address_for_virtual_products'] && ($_REQUEST['disable_shipping_address_for_virtual_products'] > 0)) {
+	            $message = sprintf( __( 'Shipping Address disabled for %s products.', $this->plugin_slug ), number_format_i18n( $_REQUEST['disable_shipping_address_for_virtual_products'] ) );
 	            echo '<div class="updated"><p>'.$message.'</p></div>';
 	        }
 		       
