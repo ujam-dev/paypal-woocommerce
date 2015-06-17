@@ -82,6 +82,11 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
             add_action( 'woocommerce_cart_calculate_fees', array($this, 'woocommerce_custom_surcharge') );
             add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'add_div_before_add_to_cart_button' ), 25);
             add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'add_div_after_add_to_cart_button' ), 35);
+            add_action('admin_footer-edit.php', array( $this, 'angelleye_bulk_admin_footer'), 11);
+            add_action('load-edit.php', array( $this, 'angelleye_bulk_action' ), 11 );
+            add_action('admin_notices', array( $this, 'angelleye_bulk_admin_notices' ) );
+            //add_filter( 'bulk_actions-edit-product', array( $this, 'my_custom_bulk_actions' ), 11 );
+            
         }
 
         /**
@@ -559,6 +564,121 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
             </div>
             <?php
         }
+        
+        /**
+         * Enter description here...
+         *
+         */
+        public function angelleye_bulk_admin_footer() {
+        	 global $post_type;
+ 
+			  if($post_type == 'product') {
+			    ?>
+			    <script type="text/javascript">
+			      jQuery(document).ready(function() {
+			        jQuery('<option>').val('enable_shipping_address_for_all_products').text('<?php _e('Enable Shipping Address for All Products')?>').appendTo("select[name='action']");
+			        jQuery('<option>').val('enable_shipping_address_for_all_products').text('<?php _e('Enable Shipping Address for All Products')?>').appendTo("select[name='action2']");
+			        jQuery('<option>').val('disable_shipping_address_for_all_products').text('<?php _e('Disable Shipping Address for All Products')?>').appendTo("select[name='action']");
+			        jQuery('<option>').val('disable_shipping_address_for_all_products').text('<?php _e('Disable Shipping Address for All Products')?>').appendTo("select[name='action2']");
+			        jQuery('<option>').val('enable_shipping_address_for_downloadable_products').text('<?php _e('Enable Shipping Address for Downloadable Products')?>').appendTo("select[name='action']");
+			        jQuery('<option>').val('enable_shipping_address_for_downloadable_products').text('<?php _e('Enable Shipping Address for Downloadable Products')?>').appendTo("select[name='action2']");
+			        jQuery('<option>').val('disable_shipping_address_for_downloadable_products').text('<?php _e('Disable Shipping Address for Downloadable Products')?>').appendTo("select[name='action']");
+			        jQuery('<option>').val('disable_shipping_address_for_downloadable_products').text('<?php _e('Disable Shipping Address for Downloadable Products')?>').appendTo("select[name='action2']");
+			        jQuery('<option>').val('enable_shipping_address_for_virtual_products').text('<?php _e('Enable Shipping Address for Virtual Products')?>').appendTo("select[name='action']");
+			        jQuery('<option>').val('enable_shipping_address_for_virtual_products').text('<?php _e('Enable Shipping Address for Virtual Products')?>').appendTo("select[name='action2']");
+			        jQuery('<option>').val('disable_shipping_address_for_virtual_products').text('<?php _e('Disable Shipping Address for Virtual Products')?>').appendTo("select[name='action']");
+			        jQuery('<option>').val('disable_shipping_address_for_virtual_products').text('<?php _e('Disable Shipping Address for Virtual Products')?>').appendTo("select[name='action2']");
+			      });
+			    </script>
+			    <?php
+			  }
+        }
+        
+        public function angelleye_bulk_action() {
+        	$wp_list_table = _get_list_table('WP_Posts_List_Table');
+	        $action = $wp_list_table->current_action();
+	        $post_ids = (isset($_REQUEST['post']) ) ? $_REQUEST['post'] : FALSE;
+	        if($post_ids) {
+	            switch ($action) {
+	                case 'enable_shipping_address_for_all_products':
+	                    $updated_count = 0;
+	                    foreach ($post_ids as $post_id) {
+	                        update_post_meta( $post_id, '_no_shipping_required', 'true');
+	                        $updated_count++;
+	                    }
+	                    $sendback = add_query_arg(array('enable_shipping_address_for_all_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
+	                    $sendback = esc_url_raw($sendback);
+	                    break;
+	                case 'disable_shipping_address_for_all_products':
+	                    $updated_count = 0;
+	                    foreach ($post_ids as $post_id) {
+	                        update_post_meta( $post_id, '_no_shipping_required', 'false');
+	                        $updated_count++;
+	                    }
+	                    $sendback = add_query_arg(array('disable_shipping_address_for_all_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
+	                    $sendback = esc_url_raw($sendback);
+	                    break;
+	                case 'enable_shipping_address_for_downloadable_products':
+	                    $updated_count = 0;
+	                    foreach ($post_ids as $post_id) {
+	                        update_post_meta( $post_id, '_no_shipping_required', 'true');
+	                        $updated_count++;
+	                    }
+	                    $sendback = add_query_arg(array('enable_shipping_address_for_downloadable_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
+	                    $sendback = esc_url_raw($sendback);
+	                    break;
+	                case 'disable_shipping_address_for_downloadable_products':
+	                    $updated_count = 0;
+	                    foreach ($post_ids as $post_id) {
+	                        update_post_meta( $post_id, '_no_shipping_required', 'false');
+	                        $updated_count++;
+	                    }
+	                    $sendback = add_query_arg(array('disable_shipping_address_for_downloadable_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
+	                    $sendback = esc_url_raw($sendback);
+	                    break;
+	                case 'enable_shipping_address_for_virtual_products':
+	                    $updated_count = 0;
+	                    foreach ($post_ids as $post_id) {
+	                        update_post_meta( $post_id, '_no_shipping_required', 'true');
+	                        $updated_count++;
+	                    }
+	                    $sendback = add_query_arg(array('enable_shipping_address_for_virtual_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
+	                    $sendback = esc_url_raw($sendback);
+	                    break;
+	                case 'disable_shipping_address_for_virtual_products':
+	                    $updated_count = 0;
+	                    foreach ($post_ids as $post_id) {
+	                        update_post_meta( $post_id, '_no_shipping_required', 'false');
+	                        $updated_count++;
+	                    }
+	                    $sendback = add_query_arg(array('disable_shipping_address_for_virtual_products' => $updated_count, 'ids' => join(',', $post_ids)), 'edit.php?post_type=product');
+	                    $sendback = esc_url_raw($sendback);
+	                    break;
+	                default:
+	                    return;
+	            }
+	            wp_redirect($sendback);
+	            exit();
+	        }
+
+        }
+        
+        public function angelleye_bulk_admin_notices() {
+        	global $post_type, $pagenow;
+
+	        if($pagenow == 'edit.php' && $post_type == 'product' && isset($_REQUEST['enable_shipping_address_for_all_products']) && (int) $_REQUEST['enable_shipping_address_for_all_products'] && ($_REQUEST['enable_shipping_address_for_all_products'] > 0)) {
+	            $message = sprintf( __( 'Shipping Address enabled for %s products.', $this->plugin_slug ), number_format_i18n( $_REQUEST['enable_shipping_address_for_all_products'] ) );
+	            echo '<div class="updated"><p>'.$message.'</p></div>';
+	        }
+		       
+        }
+        
+        public function my_custom_bulk_actions($actions) {
+        	unset($actions['edit']);
+			return $actions;
+        }
+        
+        
     }
 }
 new AngellEYE_Gateway_Paypal();
