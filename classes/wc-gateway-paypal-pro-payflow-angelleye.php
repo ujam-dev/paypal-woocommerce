@@ -310,6 +310,49 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
 
 		return false;
 	}
+	
+	
+	/**
+     * Validate the payment form
+     */
+    function validate_fields() {
+     
+     	$card_number = ! empty( $_POST['paypal_pro_payflow_card_number']) ? str_replace( array( ' ', '-' ), '', wc_clean( $_POST['paypal_pro_payflow_card_number'] ) ) : '';
+		$card_csc    = ! empty( $_POST['paypal_pro_payflow_card_csc']) ? wc_clean( $_POST['paypal_pro_payflow_card_csc'] ) : '';
+		$card_exp    = ! empty( $_POST['paypal_pro_payflow_card_expiration']) ? wc_clean( $_POST['paypal_pro_payflow_card_expiration'] ) : '';
+		
+        $card_exp_month = substr($card_exp, 0, 2);
+        $card_exp_year = substr($card_exp, 2, 2);
+        
+        do_action( 'before_angelleye_pro_payflow_checkout_validate_fields', $card_number, $card_csc, $card_exp );
+
+        // Check card security code
+        if (!ctype_digit($card_csc)) :
+            wc_add_notice(__('Card security code is invalid (only digits are allowed)', 'paypal-for-woocommerce'), "error");
+            return false;
+        endif;
+       
+        // Check card expiration data
+        if (
+            !ctype_digit($card_exp_month) ||
+            !ctype_digit($card_exp_year) ||
+            $card_exp_month > 12 ||
+            $card_exp_month < 1 ||
+            $card_exp_year < date('y') ||
+            $card_exp_year > date('y') + 20
+        ) :
+            wc_add_notice(__('Card expiration date is invalid', 'paypal-for-woocommerce'), "error");
+            return false;
+        endif;
+        // Check card number
+        $card_number = str_replace(array(' ', '-'), '', $card_number);
+        if (empty($card_number) || !ctype_digit($card_number)) :
+            wc_add_notice(__('Card number is invalid', 'paypal-for-woocommerce'), "error");
+            return false;
+        endif;
+   		   do_action( 'after_angelleye_pro_payflow_checkout_validate_fields', $card_number, $card_csc, $card_exp );
+        return true;
+    }
 
 	/**
      * Process the payment
@@ -324,7 +367,8 @@ for the Payflow SDK. If you purchased your account directly from PayPal, use Pay
 		$card_number = ! empty( $_POST['paypal_pro_payflow_card_number']) ? str_replace( array( ' ', '-' ), '', wc_clean( $_POST['paypal_pro_payflow_card_number'] ) ) : '';
 		$card_csc    = ! empty( $_POST['paypal_pro_payflow_card_csc']) ? wc_clean( $_POST['paypal_pro_payflow_card_csc'] ) : '';
 		$card_exp    = ! empty( $_POST['paypal_pro_payflow_card_expiration']) ? wc_clean( $_POST['paypal_pro_payflow_card_expiration'] ) : '';
-
+		
+		
 		// Do payment with paypal
 		return $this->do_payment( $order, $card_number, $card_exp, $card_csc );
 	}
