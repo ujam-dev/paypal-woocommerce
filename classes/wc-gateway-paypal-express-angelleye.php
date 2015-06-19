@@ -871,7 +871,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
             else {
                 $this->add_log("...ERROR: GetShippingDetails returned empty result");
             }
-            if ($this->skip_final_review == 'yes' && get_option('woocommerce_enable_guest_checkout') === "yes") {
+            if (($this->skip_final_review == 'yes' && (get_option('woocommerce_enable_guest_checkout') === "yes" || is_user_logged_in() )) || !empty(WC()->session->checkout_form)) {
                 $url = add_query_arg(array('wc-api' => 'WC_Gateway_PayPal_Express_AngellEYE', 'pp_action' => 'payaction'), home_url());
                 wp_redirect($url);
                 exit();
@@ -989,7 +989,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 }
             }
         } elseif (isset($_GET['pp_action']) && $_GET['pp_action'] == 'payaction') {
-            if (isset($_POST) || ($this->skip_final_review == 'yes' && get_option('woocommerce_enable_guest_checkout') === "yes")) {
+            if ((isset($_POST) || ($this->skip_final_review == 'yes' && (get_option('woocommerce_enable_guest_checkout') === "yes" || is_user_logged_in()))) || !empty(WC()->session->checkout_form)) {
 
                 // Update customer shipping and payment method to posted method
                 $chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
@@ -1373,6 +1373,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
          */
         if (!empty($posted) && WC()->cart->needs_shipping()) {
             $SECFields['addroverride'] = 1;
+            $SECFields['addressoverride'] = 1;
             if (@$posted['ship_to_different_address']) {
                 $Payment['shiptoname'] = $posted['shipping_first_name'] . ' ' . $posted['shipping_last_name'];
                 $Payment['shiptostreet'] = $posted['shipping_address_1'];
@@ -1393,6 +1394,13 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
                 $Payment['shiptocountrycode'] = @$posted['billing_country'];
                 $Payment['shiptophonenum'] = @$posted['billing_phone'];
             }
+        } elseif (is_user_logged_in() && WC()->cart->needs_shipping()) {
+        	$Payment['shiptostreet'] = WC()->customer->get_shipping_address();
+            $Payment['shiptostreet2'] = WC()->customer->get_shipping_address_2();
+            $Payment['shiptocity'] = WC()->customer->get_shipping_city();
+            $Payment['shiptostate'] = WC()->customer->get_shipping_state();
+            $Payment['shiptozip'] = WC()->customer->get_shipping_postcode();
+            $Payment['shiptocountrycode'] = WC()->customer->get_shipping_country();
         }
 
         $PaymentOrderItems = array();
