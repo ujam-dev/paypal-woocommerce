@@ -333,7 +333,7 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
             $methods[] = 'WC_Gateway_PayPal_Pro_AngellEYE';
             $methods[] = 'WC_Gateway_PayPal_Pro_Payflow_AngellEYE';
             $methods[] = 'WC_Gateway_PayPal_Express_AngellEYE';
-            $methods[] = 'WC_Paypal_Advanced';
+            $methods[] = 'WC_Gateway_PayPal_Advanced_AngellEYE';
 
             return $methods;
         }

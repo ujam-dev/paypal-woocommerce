@@ -11,7 +11,7 @@ class WC_Gateway_PayPal_Advanced_AngellEYE extends WC_Payment_Gateway {
 
 		$this->testurl            = 'https://pilot-payflowpro.paypal.com';
 		$this->liveurl            = 'https://payflowpro.paypal.com';
-		$this->relay_response_url = add_query_arg('wc-api', 'WC_Paypal_Advanced', $this->home_url);
+		$this->relay_response_url = add_query_arg('wc-api', 'WC_Gateway_PayPal_Advanced_AngellEYE', $this->home_url);
 		$this->method_title       = __( 'PayPal Advanced', 'paypal-for-woocommerce' );
 		$this->secure_token_id    = '';
 		$this->securetoken        = '';
@@ -60,7 +60,7 @@ class WC_Gateway_PayPal_Advanced_AngellEYE extends WC_Payment_Gateway {
 		add_action( 'admin_notices', array( $this, 'checks' ) );//checks for availability of the plugin
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options') );
 		add_action( 'woocommerce_receipt_paypal_advanced', array($this, 'receipt_page') );// Payment form hook
-		add_action( 'woocommerce_api_wc_paypal_advanced', array($this, 'relay_response') );// Payment listener/API hook
+		add_action( 'woocommerce_api_wc_gateway_paypal_advanced_angelleye', array($this, 'relay_response') );// Payment listener/API hook
 
 		// Set enable property if the Paypal Adavnced supported for the user country
 		if ( !$this->is_available() ) $this->enabled = false;
@@ -80,15 +80,15 @@ class WC_Gateway_PayPal_Advanced_AngellEYE extends WC_Payment_Gateway {
 		// Check required fields
 		if ( ! $this->loginid ) {
 
-			echo '<div class="error"><p>' . sprintf( __('Paypal Advanced error: Please enter your PayPal Advanced Account Merchant Login <a href="%s">here</a>', 'paypal-for-woocommerce'), admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . strtolower( 'WC_Paypal_Advanced' ) ) ) . '</p></div>';
+			echo '<div class="error"><p>' . sprintf( __('Paypal Advanced error: Please enter your PayPal Advanced Account Merchant Login <a href="%s">here</a>', 'paypal-for-woocommerce'), admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . strtolower( 'WC_Gateway_PayPal_Advanced_AngellEYE' ) ) ) . '</p></div>';
 
 		} elseif ( ! $this->resellerid ) {
 
-			echo '<div class="error"><p>' . sprintf( __('Paypal Advanced error: Please enter your PayPal Advanced Account Partner <a href="%s">here</a>', 'paypal-for-woocommerce'), admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . strtolower( 'WC_Paypal_Advanced' ) ) ) . '</p></div>';
+			echo '<div class="error"><p>' . sprintf( __('Paypal Advanced error: Please enter your PayPal Advanced Account Partner <a href="%s">here</a>', 'paypal-for-woocommerce'), admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . strtolower( 'WC_Gateway_PayPal_Advanced_AngellEYE' ) ) ) . '</p></div>';
 
 		} elseif ( ! $this->password ) {
 
-			echo '<div class="error"><p>' . sprintf( __('Paypal Advanced error: Please enter your PayPal Advanced Account Password <a href="%s">here</a>', 'paypal-for-woocommerce'), admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . strtolower( 'WC_Paypal_Advanced' ) ) ) . '</p></div>';
+			echo '<div class="error"><p>' . sprintf( __('Paypal Advanced error: Please enter your PayPal Advanced Account Password <a href="%s">here</a>', 'paypal-for-woocommerce'), admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . strtolower( 'WC_Gateway_PayPal_Advanced_AngellEYE' ) ) ) . '</p></div>';
 		}
 
 		return;
@@ -237,7 +237,7 @@ class WC_Gateway_PayPal_Advanced_AngellEYE extends WC_Payment_Gateway {
 				'ORIGID'                           => $_POST['PNREF'],
 				'TENDER'                           => 'C',
 				'TRXTYPE'                          => 'I',
-				'BUTTONSOURCE'                     => 'WooThemes_Cart'
+				'BUTTONSOURCE'                     => 'AngellEYE_SP_WooCommerce'
 			);
 
 			$postData = ''; //stores the post data string
@@ -342,7 +342,7 @@ class WC_Gateway_PayPal_Advanced_AngellEYE extends WC_Payment_Gateway {
 			'SHIPTOCITY['.strlen($order->shipping_city).']'  => $order->shipping_city,
 			'SHIPTOZIP'   => $order->shipping_postcode,
 			'SHIPTOCOUNTRY['.strlen($order->shipping_country).']' => $order->shipping_country,
-			'BUTTONSOURCE' => 'WooThemes_Cart',
+			'BUTTONSOURCE' => 'AngellEYE_SP_WooCommerce',
 			'RETURNURL['.strlen($this->relay_response_url).']' => $this->relay_response_url,
 			'ERRORURL['.strlen($this->relay_response_url).']' => $this->relay_response_url,
 			'SILENTPOSTURL['.strlen($this->relay_response_url).']' => $this->relay_response_url,
@@ -365,13 +365,13 @@ class WC_Gateway_PayPal_Advanced_AngellEYE extends WC_Payment_Gateway {
 		}
 
 		// Determine the ERRORURL,CANCELURL and SILENTPOSTURL
-		$cancelurl = add_query_arg('wc-api', 'WC_Paypal_Advanced', add_query_arg('cancel_ec_trans','true',$this->home_url));
+		$cancelurl = add_query_arg('wc-api', 'WC_Gateway_PayPal_Advanced_AngellEYE', add_query_arg('cancel_ec_trans','true',$this->home_url));
 		$paypal_args['CANCELURL['.strlen($cancelurl).']'] = $cancelurl;
 
-		$errorurl = add_query_arg('wc-api', 'WC_Paypal_Advanced', add_query_arg('error','true',$this->home_url));
+		$errorurl = add_query_arg('wc-api', 'WC_Gateway_PayPal_Advanced_AngellEYE', add_query_arg('error','true',$this->home_url));
 		$paypal_args['ERRORURL['.strlen($errorurl).']'] = $errorurl;
 
-		$silentposturl = add_query_arg('wc-api', 'WC_Paypal_Advanced', add_query_arg('silent','true',$this->home_url));
+		$silentposturl = add_query_arg('wc-api', 'WC_Gateway_PayPal_Advanced_AngellEYE', add_query_arg('silent','true',$this->home_url));
 		$paypal_args['SILENTPOSTURL['.strlen($silentposturl).']'] = $silentposturl;
 
 
