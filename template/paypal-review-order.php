@@ -5,9 +5,44 @@
 
 global $woocommerce;
 $checked = get_option('woocommerce_enable_guest_checkout');
+$executepayment = new WC_Gateway_PayPal_Plus_AngellEYE;
+
+### After PayPal payment method confirmation, user is redirected back to this page with token and Payer ID ###
+if(isset($_GET["token"]) && isset($_GET["PayerID"]) && isset($_GET["paymentId"])) {
+	
+	$frm_act = "";
+	//$order = new WC_Order( $order_id );
+	
+	$inputhtml = '<input type="submit" name ="btn_placeorder" class="button" value="' . __( 'Place Order','paypal-for-woocommerce') . '" /></p>';
+}else {
+	$frm_act = add_query_arg( 'pp_action', 'payaction', add_query_arg( 'wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url( '/' ) ) );
+	$inputhtml = '<input type="submit" onclick="jQuery(this).attr(\'disabled\', \'disabled\').val(\'Processing\'); jQuery(this).parents(\'form\').submit(); return false;" class="button" value="' . __( 'Place Order','paypal-for-woocommerce') . '" /></p>';
+
+}
+
+if (isset($_POST["btn_placeorder"]) && empty($_SESSION['execute_payment'])) {	
+$_SESSION['payment_args'] = array('token'=>$_GET["token"],'PayerID'=>$_GET["PayerID"],'paymentId'=>$_GET["paymentId"]);
+	
+	$address = array(
+                    'first_name' 	=> WC()->customer->shiptoname,
+                    'company'		=> WC()->customer->company,
+                    'address_1'		=> WC()->customer->get_address(),
+                    'address_2'		=> "",
+                    'city'			=> WC()->customer->get_city(),
+                    'state'			=> WC()->customer->get_state(),
+                    'postcode'		=> WC()->customer->get_postcode(),
+                    'country'		=> WC()->customer->get_country()
+                    ) ;
+	 $executepayment->executepay($_SESSION['payment_args']);
+	
+}	
 
 //Add hook to show login form or not
 $show_login = apply_filters('paypal-for-woocommerce-show-login', !is_user_logged_in() && $checked==="no" && isset($_REQUEST['pp_action']));
+
+
+
+
 ?>
 <style type="text/css">
     #payment{
@@ -16,15 +51,13 @@ $show_login = apply_filters('paypal-for-woocommerce-show-login', !is_user_logged
 </style>
 
 
-<form class="angelleye_checkout" method="POST" action="<?php echo add_query_arg( 'pp_action', 'payaction', add_query_arg( 'wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url( '/' ) ) );?>">
+<form class="angelleye_checkout" method="POST" action="<?php echo $frm_act;?>">
 
 <div id="paypalexpress_order_review">
         <?php woocommerce_order_review();?>
 </div>
 
 <?php if ( WC()->cart->needs_shipping()  ) : ?>
-
-
     <div class="title">
         <h2><?php _e( 'Customer details', 'woocommerce' ); ?></h2>
     </div>
@@ -192,7 +225,10 @@ $cancel_url = isset( $pp_settings['cancel_page'] ) ? get_permalink( $pp_settings
 $cancel_url = apply_filters( 'angelleye_review_order_cance_url', $cancel_url );
 echo '<div class="clear"></div>';
 echo '<p><a class="button angelleye_cancel" href="' . $cancel_url . '">'.__('Cancel order', 'paypal-for-woocommerce').'</a> ';
-echo '<input type="submit" onclick="jQuery(this).attr(\'disabled\', \'disabled\').val(\'Processing\'); jQuery(this).parents(\'form\').submit(); return false;" class="button" value="' . __( 'Place Order','paypal-for-woocommerce') . '" /></p>';
+
+
+
+echo $inputhtml;
     ?>
     </form><!--close the checkout form-->
 <?php endif; ?>
