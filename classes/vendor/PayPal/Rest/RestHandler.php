@@ -96,6 +96,7 @@ class RestHandler implements IPPHandler
 
         if ($httpConfig->getMethod() == 'POST' || $httpConfig->getMethod() == 'PUT') {
             $httpConfig->addHeader('PayPal-Request-Id', $this->apiContext->getRequestId());
+            $httpConfig->addHeader('PayPal-Partner-Attribution-Id', 'AngellEYE_SP_POS_VT');
         }
     }
 

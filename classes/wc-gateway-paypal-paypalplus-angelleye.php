@@ -32,7 +32,7 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
         $this->debug = $this->settings['debug'];
         $this->invoice_prefix = $this->settings['invoice_prefix'];
         $this->send_items = 'yes';
-
+        $this->billing_address = isset($this->settings['billing_address']) ? $this->settings['billing_address'] : 'no';
         // Determine the user and host address
         $this->hostaddr = $this->testmode == 'yes' ? $this->testurl : $this->liveurl;
         // Enable Logs if user configures to debug
@@ -42,7 +42,6 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
         add_action('admin_notices', array($this, 'checks')); //checks for availability of the plugin
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('woocommerce_receipt_paypal_plus', array($this, 'receipt_page')); // Payment form hook
-        add_action('woocommerce_api_wc_gateway_paypal_plus_angelleye', array($this, 'relay_response')); // Payment listener/API hook
         // Set enable property if the Paypal Adavnced supported for the user country
 
 
@@ -77,144 +76,8 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
     public function redirect_to($redirect_url) {
         // Clean
         @ob_clean();
-        // Header
-        header('HTTP/1.1 200 OK');
-        //redirect to the url based on layout type
-        if ($this->layout != 'MINLAYOUT') {
-            wp_redirect($redirect_url);
-        } else {
-            echo "<script>window.parent.location.href='" . $redirect_url . "';</script>";
-        }
+        echo "<script>window.parent.location.href='" . $redirect_url . "';</script>";
         exit;
-    }
-
-    /**
-     * Relay response - Checks the payment transaction reponse based on that either completes the transaction or shows thows the exception and show sthe error
-     *
-     * @access public
-     * @return javascript code to redirect the parent to a page
-     */
-    public function relay_response() {
-        //define variable for debug and NOT silent request
-        $not_silentreq_debug = ($this->debug == 'yes' && !isset($_REQUEST['silent'])) ? true : false;
-        if (!isset($_REQUEST['INVOICE'])) { // Redirect to homepage, if any invalid request or hack
-            wp_redirect(home_url('/'));
-            exit;
-        }
-        // get Order ID
-        $_POST['ORDERID'] = $_REQUEST['USER1'];
-        // Create order object
-        $order = new WC_Order($_POST['ORDERID']);
-        if ($this->debug == 'yes')
-            $this->log->add('paypal_plus', sprintf(__('Relay Response INVOICE = %s', 'paypal-for-woocommerce'), $_REQUEST['INVOICE']));
-        if ($this->debug == 'yes')
-            $this->log->add('paypal_plus', sprintf(__('Relay Response SECURETOKEN = %s', 'paypal-for-woocommerce'), $_REQUEST['SECURETOKEN']));
-        if ($this->debug == 'yes')
-            $this->log->add('paypal_plus', sprintf(__('Relay Response Order Number = %s', 'paypal-for-woocommerce'), $_POST['ORDERID']));
-        if ($this->debug == 'yes')
-            if (isset($_REQUEST['silent']) && $_REQUEST['silent'] == 'true') {
-                $this->log->add('paypal_plus', sprintf(__('Silent Relay Response Triggered: %s', 'paypal-for-woocommerce'), print_r($_REQUEST, true)));
-            } else {
-                $this->log->add('paypal_plus', sprintf(__('Relay Response Triggered: %s', 'paypal-for-woocommerce'), print_r($_REQUEST, true)));
-            }
-        // Check for validity if no errors reported
-        if (!isset($_REQUEST['error'])) {
-            if (get_post_meta($_POST['ORDERID'], '_secure_token', true) == $_REQUEST['SECURETOKEN']) {
-                if ($this->debug == 'yes')
-                    $this->log->add('paypal_plus', __('Relay Response Tokens Match', 'paypal-for-woocommerce'));
-            } else { // Redirect to homepage, if any invalid request or hack
-                if ($this->debug == 'yes')
-                    $this->log->add('paypal_plus', __('Relay Response Tokens Mismatch', 'paypal-for-woocommerce'));
-                //redirect to the checkout page
-                $this->redirect_to($order->get_checkout_payment_url(true));
-                exit;
-            }
-        }
-        //check for the status of the order, if completed or processing, redirect to thanks page. This case happens when silentpost is on
-        $status = isset($order->status) ? $order->status : $order->get_status();
-
-        if ($status == 'processing' || $status == 'completed') {
-            // Log
-            if ($not_silentreq_debug)
-                $this->log->add('paypal_plus', sprintf(__('Redirecting to Thank You Page for order %s', 'paypal-for-woocommerce'), $order->get_order_number()));
-            //redirect to the thanks page
-            $this->redirect_to($this->get_return_url($order));
-        }
-        // Handle if errors,declines and cancellation
-        if (isset($_REQUEST['error']) && $_REQUEST['error'] == 'true' && $_POST['RESULT'] != 0) { //handle errors and declines
-            // Handle declined transactions
-            if ($_POST['RESULT'] == 12 && $status != 'failed') {
-                // Update the status to failed
-                $order->update_status('failed', __('Payment failed via PayPal Plus because of.', 'paypal-for-woocommerce') . '&nbsp;' . $_POST['RESPMSG']);
-                // Log the status
-                if ($debug == 'yes')
-                    $this->log->add('paypal_plus', sprintf(__('Status has been changed to failed for order %s', 'paypal-for-woocommerce'), $order->get_order_number()));
-            }
-            // 12-0 messages
-            wc_clear_notices();
-            // Add error
-            wc_add_notice(__('Error:', 'paypal-for-woocommerce') . ' "' . urldecode($_POST['RESPMSG']) . '"', 'error');
-            // Add to log
-            if ($not_silentreq_debug)
-                $this->log->add('paypal_plus', sprintf(__('Silent Error Occurred while processing %s : %s, status: %s', 'paypal-for-woocommerce'), $order->get_order_number(), urldecode($_POST['RESPMSG']), $_POST['RESULT']));
-            elseif ($debug == 'yes')
-                $this->log->add('paypal_plus', sprintf(__('Error Occurred while processing %s : %s, status: %s', 'paypal-for-woocommerce'), $order->get_order_number(), urldecode($_POST['RESPMSG']), $_POST['RESULT']));
-            //redirect to the checkout page
-            $this->redirect_to($order->get_checkout_payment_url(true));
-        }elseif (isset($_REQUEST['cancel_ec_trans']) && $_REQUEST['cancel_ec_trans'] == 'true' && !isset($_REQUEST['silent'])) {//handle cancellations
-            wp_redirect($order->get_cancel_order_url());
-            exit;
-        } elseif ($_POST['RESULT'] == 0) {//if approved
-            // Add order note
-            $order->add_order_note(sprintf(__('PayPal Plus payment completed (Order: %s). Transaction number/ID: %s. But needs to Inquiry transaction to have confirmation that it is actually paid.', 'paypal-for-woocommerce'), $order->get_order_number(), $_POST['PNREF']));
-            //inquire transaction, whether it is really paid or not
-            $paypal_args = array(
-                'USER' => $this->user,
-                'VENDOR' => $this->loginid,
-                'PARTNER' => $this->resellerid,
-                'PWD[' . strlen($this->password) . ']' => $this->password,
-                'ORIGID' => $_POST['PNREF'],
-                'TENDER' => 'C',
-                'TRXTYPE' => 'I',
-                'BUTTONSOURCE' => 'AngellEYE_SP_WooCommerce'
-            );
-            $postData = ''; //stores the post data string
-            foreach ($paypal_args as $key => $val) {
-                $postData .='&' . $key . '=' . $val;
-            }
-            $postData = trim($postData, '&');
-            /* Using Curl post necessary information to the Paypal Site to generate the secured token */
-            $response = wp_remote_post($this->hostaddr, array(
-                'method' => 'POST',
-                'body' => $postData,
-                'timeout' => 70,
-                'sslverify' => false,
-                'user-agent' => 'Woocommerce ' . WC_VERSION,
-                'httpversion' => '1.1',
-                'headers' => array('host' => 'www.paypal.com')
-                    ));
-            if (is_wp_error($response))
-                throw new Exception(__('There was a problem connecting to the payment gateway.', 'paypal-for-woocommerce'));
-            if (empty($response['body']))
-                throw new Exception(__('Empty response.', 'paypal-for-woocommerce'));
-            /* Parse and assign to array */
-            $inquiry_result_arr = array(); //stores the response in array format
-            parse_str($response['body'], $inquiry_result_arr);
-            // Handle response
-            if ($inquiry_result_arr['RESULT'] == 0) {//if approved
-                // Add order note
-                $order->add_order_note(sprintf(__('Received result of Inquiry Transaction for the  (Order: %s) and is successful', 'paypal-for-woocommerce'), $order->get_order_number()));
-                // Payment complete
-                $order->payment_complete($_POST['PNREF']);
-                // Remove cart
-                WC()->cart->empty_cart();
-                // Log
-                if ($not_silentreq_debug)
-                    $this->log->add('paypal_plus', sprintf(__('Redirecting to Thank You Page for order %s', 'paypal-for-woocommerce'), $order->get_order_number()));
-                //redirect to the thanks page
-                $this->redirect_to($this->get_return_url($order));
-            }
-        } // End if/else
     }
 
     function get_approvalurl($order_id) {
@@ -223,8 +86,9 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
 
         define('CLIENT_ID', $const_client_id); //your PayPal client ID
         define('CLIENT_SECRET', $const_secret_id); //PayPal Secret
+
+        define('CANCEL_URL', site_url()); //cancel URL
         define('PP_CURRENCY', 'EUR'); //Currency code
-        //define('PP_CONFIG_PATH', ''); //PayPal config path (sdk_config.ini)
 
         include_once __DIR__ . "/vendor/autoload.php"; //include PayPal SDK
         if (!defined("PP_CONFIG_PATH")) {
@@ -232,14 +96,13 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
         }
         include_once(__DIR__ . '/functions.inc.php'); //our PayPal functions
 
-
-       if (!session_id()) {
+        if (!session_id()) {
             session_start();
         }
         $order = new WC_Order($order_id);
 
         //calculate total amount of all quantity. 
-        $total_amount = (2 * $item_price);
+
         $redirect_url = $this->get_return_url($order);
         try { // try a payment request
             //if payment method is paypal
@@ -248,8 +111,13 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
             $item_array_details = array();
             $final_items = array();
             $order_discount_array = array();
-           
+
+
+
+
             $get_order_details = $this->get_order_details($order);
+
+
             foreach ($get_order_details['Payments'][0]['order_items'] as $key => $value) {
 
                 $item_array = array(
@@ -272,26 +140,25 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
                 $page_id = wc_create_page(esc_sql(_x('review-order', 'page_slug', 'woocommerce')), 'woocommerce_review_order_page_id', __('Checkout &rarr; Review Order', 'paypal-for-woocommerce'), '[woocommerce_review_order]', wc_get_page_id('checkout'));
                 $review_order_page_url = get_permalink($page_id);
             }
-            $returnURL = (add_query_arg('pp_action', $order_id, $review_order_page_url));
+            $returnURL1 = (add_query_arg('pp_action', $order_id, $review_order_page_url));
 
             $totalamt = $get_order_details['Payments'][0]['amt'];
             $_SESSION["get_order_details"] = $get_order_details;
 
-            $result = create_paypal_payment($totalamt, PP_CURRENCY, '', $final_items, $returnURL, CANCEL_URL);
+            $result = create_paypal_payment($totalamt, PP_CURRENCY, '', $final_items, $returnURL1, CANCEL_URL);
 
             //if payment method was PayPal, we need to redirect user to PayPal approval URL
             if ($result->state == "created" && $result->payer->payment_method == "paypal") {
                 $_SESSION["payment_id"] = $result->id; //set payment id for later use, we need this to execute payment
-            
+
                 return $result->links[1]->href;
             }
         } catch (PPConnectionException $ex) {
-            echo ($ex->getData());
-        } catch (Exception $ex) {
-            echo $ex->getMessage();
-        }
 
-           
+            wc_add_notice(__('Error:', 'paypal-for-woocommerce') . ' "' . $ex->getData() . '"', 'error');
+        } catch (Exception $ex) {
+            wc_add_notice(__('Error:', 'paypal-for-woocommerce') . ' "' . $ex->getMessage() . '"', 'error');
+        }
     }
 
     function get_order_details($order) {
@@ -310,8 +177,6 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
         if (!class_exists('Angelleye_PayPal')) {
             require_once( 'lib/angelleye/paypal-php-library/includes/paypal.class.php' );
         }
-
-   
 
         // Basic array of survey choices.  Nothing but the values should go in here.
         $SurveyChoices = array('Choice 1', 'Choice2', 'Choice3', 'etc');
@@ -506,9 +371,6 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
         }
 
 
-
-
-
         if (isset($total_discount)) {
             $total_discount = round($total_discount, 2);
         }
@@ -591,193 +453,6 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
     }
 
     /**
-     * Gets the secured token by passing all the required information to PayPal site
-     *
-     * @param order an WC_ORDER Object
-     * @return secure_token as string
-     */
-    function get_secure_token($order) {
-        static $length_error = 0;
-        // Log
-        if ($this->debug == 'yes')
-            $this->log->add('paypal_plus', sprintf(__('Requesting for the Secured Token for the order %s', 'paypal-for-woocommerce'), $order->get_order_number()));
-        // Generate unique id
-        $this->secure_token_id = uniqid(substr($_SERVER['HTTP_HOST'], 0, 9), true);
-        // Prepare paypal_ars array to pass to paypal to generate the secure token
-        $paypal_args = array();
-        $paypal_args = array(
-            'VERBOSITY' => 'HIGH',
-            'USER' => $this->user,
-            'PWD[' . strlen($this->password) . ']' => $this->password,
-            'SECURETOKENID' => $this->secure_token_id,
-            'CREATESECURETOKEN' => 'Y',
-            'TRXTYPE' => $this->transtype,
-            'CUSTREF' => $order->get_order_number(),
-            'USER1' => $order->id,
-            'INVNUM' => $this->invoice_prefix . ltrim($order->get_order_number(), '#'),
-            'AMT' => $order->get_total(),
-            'FREIGHTAMT' => number_format($order->get_total_shipping(), 2, '.', ''),
-            'COMPANYNAME[' . strlen($order->billing_company) . ']' => $order->billing_company,
-            'CURRENCY' => get_woocommerce_currency(),
-            'EMAIL' => $order->billing_email,
-            'BILLTOFIRSTNAME[' . strlen($order->billing_first_name) . ']' => $order->billing_first_name,
-            'BILLTOLASTNAME[' . strlen($order->billing_last_name) . ']' => $order->billing_last_name,
-            'BILLTOSTREET[' . strlen($order->billing_address_1 . ' ' . $order->billing_address_2) . ']' => $order->billing_address_1 . ' ' . $order->billing_address_2,
-            'BILLTOCITY[' . strlen($order->billing_city) . ']' => $order->billing_city,
-            'BILLTOSTATE[' . strlen($order->billing_state) . ']' => $order->billing_state,
-            'BILLTOZIP' => $order->billing_postcode,
-            'BILLTOCOUNTRY[' . strlen($order->billing_country) . ']' => $order->billing_country,
-            'BILLTOEMAIL' => $order->billing_email,
-            'BILLTOPHONENUM' => $order->billing_phone,
-            'SHIPTOFIRSTNAME[' . strlen($order->shipping_first_name) . ']' => $order->shipping_first_name,
-            'SHIPTOLASTNAME[' . strlen($order->shipping_last_name) . ']' => $order->shipping_last_name,
-            'SHIPTOSTREET[' . strlen($order->shipping_address_1 . ' ' . $order->shipping_address_2) . ']' => $order->shipping_address_1 . ' ' . $order->shipping_address_2,
-            'SHIPTOCITY[' . strlen($order->shipping_city) . ']' => $order->shipping_city,
-            'SHIPTOZIP' => $order->shipping_postcode,
-            'SHIPTOCOUNTRY[' . strlen($order->shipping_country) . ']' => $order->shipping_country,
-            'BUTTONSOURCE' => 'AngellEYE_SP_WooCommerce',
-            'RETURNURL[' . strlen($this->relay_response_url) . ']' => $this->relay_response_url,
-            'ERRORURL[' . strlen($this->relay_response_url) . ']' => $this->relay_response_url,
-            'SILENTPOSTURL[' . strlen($this->relay_response_url) . ']' => $this->relay_response_url,
-            'URLMETHOD' => 'POST',
-            'TEMPLATE' => $this->layout,
-            'PAGECOLLAPSEBGCOLOR' => ltrim($this->page_collapse_bgcolor, '#'),
-            'PAGECOLLAPSETEXTCOLOR' => ltrim($this->page_collapse_textcolor, '#'),
-            'PAGEBUTTONBGCOLOR' => ltrim($this->page_button_bgcolor, '#'),
-            'PAGEBUTTONTEXTCOLOR' => ltrim($this->page_button_textcolor, '#'),
-            'LABELTEXTCOLOR' => ltrim($this->settings['label_textcolor'], '#'),
-        );
-        //handle empty state exception e.g. Denmark
-        if (empty($order->shipping_state)) {
-            //replace with city
-            $paypal_args['SHIPTOSTATE[' . strlen($order->shipping_city) . ']'] = $order->shipping_city;
-        } else {
-            //retain state
-            $paypal_args['SHIPTOSTATE[' . strlen($order->shipping_state) . ']'] = $order->shipping_state;
-        }
-        // Determine the ERRORURL,CANCELURL and SILENTPOSTURL
-        $cancelurl = add_query_arg('wc-api', 'WC_Gateway_PayPal_Plus_AngellEYE', add_query_arg('cancel_ec_trans', 'true', $this->home_url));
-        $paypal_args['CANCELURL[' . strlen($cancelurl) . ']'] = $cancelurl;
-        $errorurl = add_query_arg('wc-api', 'WC_Gateway_PayPal_Plus_AngellEYE', add_query_arg('error', 'true', $this->home_url));
-        $paypal_args['ERRORURL[' . strlen($errorurl) . ']'] = $errorurl;
-        $silentposturl = add_query_arg('wc-api', 'WC_Gateway_PayPal_Plus_AngellEYE', add_query_arg('silent', 'true', $this->home_url));
-        $paypal_args['SILENTPOSTURL[' . strlen($silentposturl) . ']'] = $silentposturl;
-        // If prices include tax or have order discounts, send the whole order as a single item
-        if ($order->prices_include_tax == 'yes' || $order->get_order_discount() > 0 || $length_error > 1) {
-            // Don't pass items - paypal borks tax due to prices including tax. PayPal has no option for tax inclusive pricing sadly. Pass 1 item for the order items overall
-            $item_names = array();
-            if (sizeof($order->get_items()) > 0) {
-                $paypal_args['FREIGHTAMT'] = number_format($order->get_total_shipping() + $order->get_shipping_tax(), 2, '.', '');
-                if ($length_error <= 1) {
-                    foreach ($order->get_items() as $item)
-                        if ($item['qty'])
-                            $item_names[] = $item['name'] . ' x ' . $item['qty'];
-                } else {
-                    $item_names[] = "All selected items, refer to Woocommerce order details";
-                }
-                $items_str = sprintf(__('Order %s', 'paypal-for-woocommerce'), $order->get_order_number()) . " - " . implode(', ', $item_names);
-                $items_names_str = $this->paypal_plus_item_name($items_str);
-                $items_desc_str = $this->paypal_plus_item_desc($items_str);
-                $paypal_args['L_NAME0[' . strlen($items_names_str) . ']'] = $items_names_str;
-                $paypal_args['L_DESC0[' . strlen($items_desc_str) . ']'] = $items_desc_str;
-                $paypal_args['L_QTY0'] = 1;
-                $paypal_args['L_COST0'] = number_format($order->get_total() - round($order->get_total_shipping() + $order->get_shipping_tax(), 2), 2, '.', '');
-                //determine ITEMAMT
-                $paypal_args['ITEMAMT'] = $paypal_args['L_COST0'] * $paypal_args['L_QTY0'];
-            }
-        } else {
-            // Tax
-            $paypal_args['TAXAMT'] = $order->get_total_tax();
-            //ITEM AMT, total amount
-            $paypal_args['ITEMAMT'] = 0;
-            // Cart Contents
-            $item_loop = 0;
-            if (sizeof($order->get_items()) > 0) {
-                foreach ($order->get_items() as $item) {
-                    if ($item['qty']) {
-                        $product = $order->get_product_from_item($item);
-                        $item_name = $item['name'];
-                        //create order meta object and get the meta data as string
-                        $item_meta = new WC_order_item_meta($item['item_meta']);
-                        if ($length_error == 0 && $meta = $item_meta->display(true, true)) {
-                            $item_name .= ' (' . $meta . ')';
-                            $item_name = $this->paypal_plus_item_name($item_name);
-                        }
-                        $paypal_args['L_NAME' . $item_loop . '[' . strlen($item_name) . ']'] = $item_name;
-                        if ($product->get_sku())
-                            $paypal_args['L_SKU' . $item_loop] = $product->get_sku();
-                        $paypal_args['L_QTY' . $item_loop] = $item['qty'];
-                        $paypal_args['L_COST' . $item_loop] = $order->get_item_total($item, false, true); /* No Tax , but Round it) */
-                        $paypal_args['L_TAXAMT' . $item_loop] = $order->get_item_tax($item, true); /* Round it */
-                        //calculate ITEMAMT
-                        $paypal_args['ITEMAMT'] += $order->get_line_total($item, false); /* No tax */
-                        $item_loop++;
-                    } //Quantity check if cond
-                } //Loop order items
-            } //check for items existence
-        } //inc or exc if-else
-        // Apply filters, any plugins or custom coding can induce or reduce the arguments
-        $paypal_args = apply_filters('woocommerce_paypal_args', $paypal_args);
-        // Handle exceptions using try/catch blocks for the request to get secure tocken from paypal
-        try {
-            /* prepare post data to post to the paypal site */
-            $postData = '';
-            $logData = '';
-            foreach ($paypal_args as $key => $val) {
-                $postData .='&' . $key . '=' . $val;
-                if (strpos($key, 'PWD') === 0)
-                    $logData .='&PWD=XXXX';
-                else
-                    $logData .='&' . $key . '=' . $val;
-            }
-            $postData = trim($postData, '&');
-            // Log
-            if ($this->debug == 'yes') {
-                $logData = trim($logData, '&');
-                $this->log->add('paypal_plus', sprintf(__('Requesting for the Secured Token for the order %s with following URL and Paramaters: %s', 'paypal-for-woocommerce'), $order->get_order_number(), $this->hostaddr . '?' . $logData));
-            }
-            /* Using Curl post necessary information to the Paypal Site to generate the secured token */
-            $response = wp_remote_post($this->hostaddr, array(
-                'method' => 'POST',
-                'body' => $postData,
-                'timeout' => 70,
-                'sslverify' => false,
-                'user-agent' => 'WooCommerce ' . WC_VERSION,
-                'httpversion' => '1.1',
-                'headers' => array('host' => 'www.paypal.com')
-                    ));
-            //if error occurs, throw exception with the error message
-            if (is_wp_error($response)) {
-                throw new Exception($response->get_error_message());
-            }
-            if (empty($response['body']))
-                throw new Exception(__('Empty response.', 'paypal-for-woocommerce'));
-            /* Parse and assign to array */
-            parse_str($response['body'], $arr);
-            // Handle response
-            if ($arr['RESULT'] > 0) {
-                // raise exception
-                throw new Exception(__('There was an error processing your order - ' . $arr['RESPMSG'], 'paypal-for-woocommerce'));
-            } else {//return the secure token
-                return $arr['SECURETOKEN'];
-            }
-        } catch (Exception $e) {
-            if ($this->debug == 'yes')
-                $this->log->add('paypal_plus', sprintf(__('Secured Token generation failed for the order %s with error: %s', 'paypal-for-woocommerce'), $order->get_order_number(), $e->getMessage()));
-            if ($arr['RESULT'] != 7) {
-                wc_add_notice(__('Error:', 'paypal-for-woocommerce') . ' "' . $e->getMessage() . '"', 'error');
-                $length_error = 0;
-                return;
-            } else {
-                if ($this->debug == 'yes')
-                    $this->log->add('paypal_plus', sprintf(__('Secured Token generation failed for the order %s with error: %s', 'paypal-for-woocommerce'), $order->get_order_number(), $e->getMessage()));
-                $length_error++;
-                return $this->get_secure_token($order);
-            }
-        }
-    }
-
-    /**
      * Check if this gateway is enabled and available in the user's country
      * @access public
      * @return boolean
@@ -848,13 +523,13 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
                 'rest_client_id' => array(
                     'title' => __('Client ID', 'paypal-for-woocommerce'),
                     'type' => 'password',
-                    'description' => 'Enter your PayPal Rest API Client ID1',
+                    'description' => 'Enter your PayPal Rest API Client ID',
                     'default' => ''
                 ),
                 'rest_secret_id' => array(
                     'title' => __('Secret ID', 'paypal-for-woocommerce'),
                     'type' => 'password',
-                    'description' => __('Enter your PayPal Rest API Secret ID', 'paypal-for-woocommerce'),
+                    'description' => __('Enter your PayPal Rest API Secret ID.', 'paypal-for-woocommerce'),
                     'default' => ''
                 ),
                 'testmode' => array(
@@ -863,6 +538,13 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
                     'label' => __('Enable PayPal sandbox', 'paypal-for-woocommerce'),
                     'default' => 'yes',
                     'description' => sprintf(__('PayPal sandbox can be used to test payments. Sign up for a developer account <a href="%s">here</a>', 'paypal-for-woocommerce'), 'https://developer.paypal.com/'),
+                ),
+                'billing_address' => array(
+                    'title' => __('Billing Address', 'paypal-for-woocommerce'),
+                    'label' => __('Set billing address in WooCommerce using the address returned by PayPal.', 'paypal-for-woocommerce'),
+                    'description' => __('PayPal only returns a shipping address back to the website.  Enable this option if you would like to use this address for both billing and shipping in WooCommerce.'),
+                    'type' => 'checkbox',
+                    'default' => 'no'
                 ),
                 'invoice_prefix' => array(
                     'title' => __('Invoice Prefix', 'paypal-for-woocommerce'),
@@ -907,65 +589,27 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
             //use try/catch blocks to handle exceptions while processing the payment
             try {
 
-                //get secure token
-                //$this->securetoken = $this->get_secure_token($order);
+
 
                 if (isset($_POST['createaccount'])) {
                     $this->customer_id = apply_filters('woocommerce_checkout_customer_id', get_current_user_id());
-                    $new_username = $_POST['billing_first_name'] . $_POST['billing_last_name'];
-                    if (empty($new_username)) {
-                        wc_add_notice(__('First Name and Last Name is a required field', 'paypal-for-woocommerce'), 'error');
+                    if (empty($_POST['username'])) {
+                        //  wc_add_notice(__('Username is required', 'paypal-for-woocommerce'), 'error');
                     } elseif (username_exists($_POST['username'])) {
-                        wc_add_notice(__('This username is already registered.', 'paypal-for-woocommerce'), 'error');
+                        //   wc_add_notice(__('This username is already registered.', 'paypal-for-woocommerce'), 'error');
                     } elseif (empty($_POST['email'])) {
-                        wc_add_notice(__('Please provide a valid email address.', 'paypal-for-woocommerce'), 'error');
+                        //  wc_add_notice(__('Please provide a valid email address.', 'paypal-for-woocommerce'), 'error');
                     } elseif (empty($_POST['password']) || empty($_POST['repassword'])) {
-                        wc_add_notice(__('Password is required.', 'paypal-for-woocommerce'), 'error');
+                        //  wc_add_notice(__('Password is required.', 'paypal-for-woocommerce'), 'error');
                     } elseif ($_POST['password'] != $_POST['repassword']) {
-                        wc_add_notice(__('Passwords do not match.', 'paypal-for-woocommerce'), 'error');
+                        //  wc_add_notice(__('Passwords do not match.', 'paypal-for-woocommerce'), 'error');
                     } elseif (get_user_by('email', $_POST['email']) != false) {
-                        wc_add_notice(__('This email address is already registered.', 'paypal-for-woocommerce'), 'error');
+                        //   wc_add_notice(__('This email address is already registered.', 'paypal-for-woocommerce'), 'error');
                     } else {
 
                         $username = !empty($_POST['username']) ? $_POST['username'] : '';
                         $password = !empty($_POST['password']) ? $_POST['password'] : '';
                         $email = $_POST['email'];
-
-                        try {
-
-                            // Anti-spam trap
-                            if (!empty($_POST['email_2'])) {
-                                throw new Exception(__('Anti-spam field was filled in.', 'woocommerce'));
-                                wc_add_notice('<strong>' . __('Anti-spam field was filled in.', 'paypal-for-woocommerce') . ':</strong> ', 'error');
-                            }
-
-                            $new_customer = wc_create_new_customer(sanitize_email($email), wc_clean($username), $password);
-
-                            if (is_wp_error($new_customer)) {
-                                wc_add_notice($user->get_error_message(), 'error');
-                            }
-
-                            if (apply_filters('paypal-for-woocommerce_registration_auth_new_customer', true, $new_customer)) {
-                                wc_set_customer_auth_cookie($new_customer);
-                            }
-
-                            $creds = array(
-                                'user_login' => wc_clean($username),
-                                'user_password' => $password,
-                                'remember' => true,
-                            );
-                            $user = wp_signon($creds, false);
-                            if (is_wp_error($user)) {
-                                wc_add_notice($user->get_error_message(), 'error');
-                            } else {
-                                wp_set_current_user($user->ID); //Here is where we update the global user variables 
-                                $secure_cookie = is_ssl() ? true : false;
-                                wp_set_auth_cookie($user->ID, true, $secure_cookie);
-                            }
-                        } catch (Exception $e) {
-                            wc_add_notice('<strong>' . __('Error', 'paypal-for-woocommerce') . ':</strong> ' . $e->getMessage(), 'error');
-                        }
-
                         $this->customer_id = $user->ID;
 
                         // As we are now logged in, checkout will need to refresh to show logged in data
@@ -982,43 +626,43 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
                         $full_name = $split_name['fullname'];
 
                         // Add customer info from other billing fields
-                        if (isset($result)) {
-                            update_user_meta($this->customer_id, 'first_name', isset($result['FIRSTNAME']) ? $result['FIRSTNAME'] : '');
-                            update_user_meta($this->customer_id, 'last_name', isset($result['LASTNAME']) ? $result['LASTNAME'] : '');
-                            update_user_meta($this->customer_id, 'shipping_first_name', $shipping_first_name);
-                            update_user_meta($this->customer_id, 'shipping_last_name', $shipping_last_name);
-                            update_user_meta($this->customer_id, 'shipping_company', isset($result['BUSINESS']) ? $result['BUSINESS'] : '' );
-                            update_user_meta($this->customer_id, 'shipping_address_1', isset($result['SHIPTOSTREET']) ? $result['SHIPTOSTREET'] : '');
-                            update_user_meta($this->customer_id, 'shipping_address_2', isset($result['SHIPTOSTREET2']) ? $result['SHIPTOSTREET2'] : '');
-                            update_user_meta($this->customer_id, 'shipping_city', isset($result['SHIPTOCITY']) ? $result['SHIPTOCITY'] : '' );
-                            update_user_meta($this->customer_id, 'shipping_postcode', isset($result['SHIPTOZIP']) ? $result['SHIPTOZIP'] : '');
-                            update_user_meta($this->customer_id, 'shipping_country', isset($result['SHIPTOCOUNTRYCODE']) ? $result['SHIPTOCOUNTRYCODE'] : '');
-                            update_user_meta($this->customer_id, 'shipping_state', isset($result['SHIPTOSTATE']) ? $result['SHIPTOSTATE'] : '' );
-                            $user_submit_form = maybe_unserialize(WC()->session->checkout_form);
-                            if ((isset($user_submit_form) && !empty($user_submit_form) && is_array($user_submit_form))) {
-                                update_user_meta($this->customer_id, 'billing_first_name', isset($user_submit_form['billing_first_name']) ? $user_submit_form['billing_first_name'] : $result['FIRSTNAME']);
-                                update_user_meta($this->customer_id, 'billing_last_name', isset($user_submit_form['billing_last_name']) ? $user_submit_form['billing_last_name'] : $result['LASTNAME']);
-                                update_user_meta($this->customer_id, 'billing_address_1', isset($user_submit_form['billing_address_1']) ? $user_submit_form['billing_address_1'] : $result['SHIPTOSTREET']);
-                                update_user_meta($this->customer_id, 'billing_address_2', isset($user_submit_form['billing_address_2']) ? $user_submit_form['billing_address_2'] : $result['SHIPTOSTREET2']);
-                                update_user_meta($this->customer_id, 'billing_city', isset($user_submit_form['billing_city']) ? $user_submit_form['billing_city'] : $result['SHIPTOCITY']);
-                                update_user_meta($this->customer_id, 'billing_postcode', isset($user_submit_form['billing_postcode']) ? $user_submit_form['billing_postcode'] : $result['SHIPTOZIP']);
-                                update_user_meta($this->customer_id, 'billing_country', isset($user_submit_form['billing_country']) ? $user_submit_form['billing_country'] : $result['SHIPTOCOUNTRYCODE']);
-                                update_user_meta($this->customer_id, 'billing_state', isset($user_submit_form['billing_state']) ? $user_submit_form['billing_state'] : $result['SHIPTOSTATE']);
-                                update_user_meta($this->customer_id, 'billing_phone', isset($user_submit_form['billing_phone']) ? $user_submit_form['billing_phone'] : $result['PHONENUM']);
-                                update_user_meta($this->customer_id, 'billing_email', isset($user_submit_form['billing_email']) ? $user_submit_form['billing_email'] : $result['EMAIL']);
-                            } else {
-                                update_user_meta($this->customer_id, 'billing_first_name', $shipping_first_name);
-                                update_user_meta($this->customer_id, 'billing_last_name', $shipping_last_name);
-                                update_user_meta($this->customer_id, 'billing_address_1', isset($result['SHIPTOSTREET']) ? $result['SHIPTOSTREET'] : '');
-                                update_user_meta($this->customer_id, 'billing_address_2', isset($result['SHIPTOSTREET2']) ? $result['SHIPTOSTREET2'] : '');
-                                update_user_meta($this->customer_id, 'billing_city', isset($result['SHIPTOCITY']) ? $result['SHIPTOCITY'] : '');
-                                update_user_meta($this->customer_id, 'billing_postcode', isset($result['SHIPTOZIP']) ? $result['SHIPTOZIP'] : '');
-                                update_user_meta($this->customer_id, 'billing_country', isset($result['SHIPTOCOUNTRYCODE']) ? $result['SHIPTOCOUNTRYCODE'] : '');
-                                update_user_meta($this->customer_id, 'billing_state', isset($result['SHIPTOSTATE']) ? $result['SHIPTOSTATE'] : '');
-                                update_user_meta($this->customer_id, 'billing_phone', isset($result['PHONENUM']) ? $result['PHONENUM'] : '');
-                                update_user_meta($this->customer_id, 'billing_email', isset($result['EMAIL']) ? $result['EMAIL'] : '');
-                            }
+                        //  if (isset($result)) {
+                        update_user_meta($this->customer_id, 'first_name', isset($result['FIRSTNAME']) ? $result['FIRSTNAME'] : '');
+                        update_user_meta($this->customer_id, 'last_name', isset($result['LASTNAME']) ? $result['LASTNAME'] : '');
+                        update_user_meta($this->customer_id, 'shipping_first_name', $shipping_first_name);
+                        update_user_meta($this->customer_id, 'shipping_last_name', $shipping_last_name);
+                        update_user_meta($this->customer_id, 'shipping_company', isset($result['BUSINESS']) ? $result['BUSINESS'] : '' );
+                        update_user_meta($this->customer_id, 'shipping_address_1', isset($result['SHIPTOSTREET']) ? $result['SHIPTOSTREET'] : '');
+                        update_user_meta($this->customer_id, 'shipping_address_2', isset($result['SHIPTOSTREET2']) ? $result['SHIPTOSTREET2'] : '');
+                        update_user_meta($this->customer_id, 'shipping_city', isset($result['SHIPTOCITY']) ? $result['SHIPTOCITY'] : '' );
+                        update_user_meta($this->customer_id, 'shipping_postcode', isset($result['SHIPTOZIP']) ? $result['SHIPTOZIP'] : '');
+                        update_user_meta($this->customer_id, 'shipping_country', isset($result['SHIPTOCOUNTRYCODE']) ? $result['SHIPTOCOUNTRYCODE'] : '');
+                        update_user_meta($this->customer_id, 'shipping_state', isset($result['SHIPTOSTATE']) ? $result['SHIPTOSTATE'] : '' );
+                        $user_submit_form = maybe_unserialize(WC()->session->checkout_form);
+                        if ((isset($user_submit_form) && !empty($user_submit_form) && is_array($user_submit_form))) {
+                            update_user_meta($this->customer_id, 'billing_first_name', isset($user_submit_form['billing_first_name']) ? $user_submit_form['billing_first_name'] : $result['FIRSTNAME']);
+                            update_user_meta($this->customer_id, 'billing_last_name', isset($user_submit_form['billing_last_name']) ? $user_submit_form['billing_last_name'] : $result['LASTNAME']);
+                            update_user_meta($this->customer_id, 'billing_address_1', isset($user_submit_form['billing_address_1']) ? $user_submit_form['billing_address_1'] : $result['SHIPTOSTREET']);
+                            update_user_meta($this->customer_id, 'billing_address_2', isset($user_submit_form['billing_address_2']) ? $user_submit_form['billing_address_2'] : $result['SHIPTOSTREET2']);
+                            update_user_meta($this->customer_id, 'billing_city', isset($user_submit_form['billing_city']) ? $user_submit_form['billing_city'] : $result['SHIPTOCITY']);
+                            update_user_meta($this->customer_id, 'billing_postcode', isset($user_submit_form['billing_postcode']) ? $user_submit_form['billing_postcode'] : $result['SHIPTOZIP']);
+                            update_user_meta($this->customer_id, 'billing_country', isset($user_submit_form['billing_country']) ? $user_submit_form['billing_country'] : $result['SHIPTOCOUNTRYCODE']);
+                            update_user_meta($this->customer_id, 'billing_state', isset($user_submit_form['billing_state']) ? $user_submit_form['billing_state'] : $result['SHIPTOSTATE']);
+                            update_user_meta($this->customer_id, 'billing_phone', isset($user_submit_form['billing_phone']) ? $user_submit_form['billing_phone'] : $result['PHONENUM']);
+                            update_user_meta($this->customer_id, 'billing_email', isset($user_submit_form['billing_email']) ? $user_submit_form['billing_email'] : $result['EMAIL']);
+                        } else {
+                            update_user_meta($this->customer_id, 'billing_first_name', $shipping_first_name);
+                            update_user_meta($this->customer_id, 'billing_last_name', $shipping_last_name);
+                            update_user_meta($this->customer_id, 'billing_address_1', isset($result['SHIPTOSTREET']) ? $result['SHIPTOSTREET'] : '');
+                            update_user_meta($this->customer_id, 'billing_address_2', isset($result['SHIPTOSTREET2']) ? $result['SHIPTOSTREET2'] : '');
+                            update_user_meta($this->customer_id, 'billing_city', isset($result['SHIPTOCITY']) ? $result['SHIPTOCITY'] : '');
+                            update_user_meta($this->customer_id, 'billing_postcode', isset($result['SHIPTOZIP']) ? $result['SHIPTOZIP'] : '');
+                            update_user_meta($this->customer_id, 'billing_country', isset($result['SHIPTOCOUNTRYCODE']) ? $result['SHIPTOCOUNTRYCODE'] : '');
+                            update_user_meta($this->customer_id, 'billing_state', isset($result['SHIPTOSTATE']) ? $result['SHIPTOSTATE'] : '');
+                            update_user_meta($this->customer_id, 'billing_phone', isset($result['PHONENUM']) ? $result['PHONENUM'] : '');
+                            update_user_meta($this->customer_id, 'billing_email', isset($result['EMAIL']) ? $result['EMAIL'] : '');
                         }
+                        //}
                     }
                 }
 
@@ -1027,13 +671,13 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
 
                 //if valid securetoken
                 if ($this->approvalurl != "") {
+                    $user_submit_form = maybe_unserialize(WC()->session->customer);
 
-                    //add token values to post meta and we can use it later
-                    //	update_post_meta( $order->id, '_secure_token_id', $this->secure_token_id );
-                    //	update_post_meta( $order->id, '_secure_token', $this->securetoken);
                     //Log
                     if ($this->debug == 'yes')
-                        $this->log->add('paypal_advanced', sprintf(__('Secured Token generated successfully for the order %s', 'paypal-for-woocommerce'), $order->get_order_number()));
+                        $this->log->add('paypal_plus', sprintf(__('Secured Token generated successfully for the order %s', 'paypal-for-woocommerce'), $order->get_order_number()));
+
+
 
                     //redirect to pay
                     return array(
@@ -1054,69 +698,6 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
         }
 
         /**
-         * Process a refund if supported
-         * @param  int $order_id
-         * @param  float $amount
-         * @param  string $reason
-         * @return  bool|wp_error True or false based on success, or a WP_Error object
-         */
-        public function process_refund($order_id, $amount = null, $reason = '') {
-            $order = wc_get_order($order_id);
-            if (!$order || !$order->get_transaction_id()) {
-                return false;
-            }
-            if (!is_null($amount) && $order->get_total() > $amount) {
-                return new WP_Error('paypal-plus-error', __('Partial refund is not supported', 'woocommerce'));
-            }
-            //refund transaction, parameters
-            $paypal_args = array(
-                'USER' => $this->user,
-                'VENDOR' => $this->loginid,
-                'PARTNER' => $this->resellerid,
-                'PWD[' . strlen($this->password) . ']' => $this->password,
-                'ORIGID' => $order->get_transaction_id(),
-                'TENDER' => 'C',
-                'TRXTYPE' => 'C',
-                'VERBOSITY' => 'HIGH'
-            );
-            $postData = ''; //stores the post data string
-            foreach ($paypal_args as $key => $val) {
-                $postData .='&' . $key . '=' . $val;
-            }
-            $postData = trim($postData, '&');
-            // Using Curl post necessary information to the Paypal Site to generate the secured token 
-            $response = wp_remote_post($this->hostaddr, array(
-                'method' => 'POST',
-                'body' => $postData,
-                'timeout' => 70,
-                'sslverify' => false,
-                'user-agent' => 'Woocommerce ' . WC_VERSION,
-                'httpversion' => '1.1',
-                'headers' => array('host' => 'www.paypal.com')
-                    ));
-            if (is_wp_error($response))
-                throw new Exception(__('There was a problem connecting to the payment gateway.', 'paypal-for-woocommerce'));
-            if (empty($response['body']))
-                throw new Exception(__('Empty response.', 'paypal-for-woocommerce'));
-            // Parse and assign to array 
-            $refund_result_arr = array(); //stores the response in array format
-            parse_str($response['body'], $refund_result_arr);
-            //Log
-            if ($this->debug == 'yes') {
-                $this->log->add('paypal_plus', sprintf(__('Response of the refund transaction: %s', 'paypal-for-woocommerce'), print_r($refund_result_arr, true)));
-            }
-            if ($refund_result_arr['RESULT'] == 0) {
-
-                $order->add_order_note(sprintf(__('Successfully Refunded - Refund Transaction ID: %s', 'woocommerce'), $refund_result_arr['PNREF']));
-            } else {
-                $order->add_order_note(sprintf(__('Refund Failed - Refund Transaction ID: %s, Error Msg: %s', 'woocommerce'), $refund_result_arr['PNREF'], $refund_result_arr['RESPMSG']));
-                throw new Exception(sprintf(__('Refund Failed - Refund Transaction ID: %s, Error Msg: %s', 'woocommerce'), $refund_result_arr['PNREF'], $refund_result_arr['RESPMSG']));
-                return false;
-            }
-            return true;
-        }
-
-        /**
          * Displays IFRAME/Redirect to show the hosted page in Paypal
          *
          * @access public
@@ -1128,8 +709,6 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
             //create order object
             $order = new WC_Order($order_id);
             //get the tokens
-            //$this->secure_token_id = get_post_meta( $order->id, '_secure_token_id',true);
-            //$this->securetoken = get_post_meta( $order->id, '_secure_token',true);
             //Log the browser and its version
             if ($this->debug == 'yes')
                 $this->log->add('paypal_plus', sprintf(__('Browser Info: %s', 'paypal-for-woocommerce'), $_SERVER['HTTP_USER_AGENT']));
@@ -1218,25 +797,19 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
 
             define('CLIENT_ID', $const_client_id); //your PayPal client ID
             define('CLIENT_SECRET', $const_secret_id); //PayPal Secret
-            define('PP_CURRENCY', 'EUR'); //Currency code
-            //define('PP_CONFIG_PATH', ''); //PayPal config path (sdk_config.ini)
+
 
             include_once __DIR__ . "/vendor/autoload.php"; //include PayPal SDK
             if (!defined("PP_CONFIG_PATH")) {
                 define("PP_CONFIG_PATH", __DIR__);
             }
             include_once(__DIR__ . '/functions.inc.php'); //our PayPal functions
-           
             $result = execute_payment($_SESSION['payment_args']['paymentId'], $_SESSION['payment_args']['PayerID']);  //call execute payment function.
 
-            $order = new WC_Order($order_id);
+            if (isset($order_id) && !empty($order_id)) {
+                $order = new WC_Order($order_id);
+            }
             if ($result->state == "approved") { //if state = approved continue..
-               
-                $key = get_post_meta($_GET['pp_action'], '_order_key', true);
-                $order->get_checkout_order_received_url();
-                global $woocommerce;
-                $checkout_url = $woocommerce->cart->get_checkout_url() . 'order-received/' . $_GET['pp_action'];
-                $received_url = $checkout_url . "/?key=" . $key;
                 global $wpdb;
 
                 $my_post = array(
@@ -1245,12 +818,34 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
 
 // Update the post into the database
                 wp_update_post($my_post);
-              
 
+                if ($this->billing_address == 'yes') {
+                    require_once("lib/NameParser.php");
+                    $parser = new FullNameParser();
+                    $split_name = $parser->split_full_name($result->payer->payer_info->shipping_address->recipient_name);
+                    $shipping_first_name = $split_name['fname'];
+                    $shipping_last_name = $split_name['lname'];
+                    $full_name = $split_name['fullname'];
 
+                    update_post_meta($_GET['pp_action'], '_billing_first_name', $shipping_first_name);
+                    update_post_meta($_GET['pp_action'], '_billing_last_name', $shipping_last_name);
+                    update_post_meta($_GET['pp_action'], '_billing_full_name', $full_name);
+                    //update_post_meta( $_GET['pp_action'], '_billing_company',   $this->get_session('company') );
+                    update_post_meta($_GET['pp_action'], '_billing_address_1', $result->payer->payer_info->shipping_address->line1);
+                    update_post_meta($_GET['pp_action'], '_billing_address_2', $result->payer->payer_info->shipping_address->line2);
+                    update_post_meta($_GET['pp_action'], '_billing_city', $result->payer->payer_info->shipping_address->city);
+                    update_post_meta($_GET['pp_action'], '_billing_postcode', $result->payer->payer_info->shipping_address->postal_code);
+                    update_post_meta($_GET['pp_action'], '_billing_country', $result->payer->payer_info->shipping_address->country_code);
+                    update_post_meta($_GET['pp_action'], '_billing_state', $result->payer->payer_info->shipping_address->state);
+                }
+
+                $key = get_post_meta($_GET['pp_action'], '_order_key', true);
+                //$order->get_checkout_order_received_url();
+                global $woocommerce;
+                $checkout_url = $woocommerce->cart->get_checkout_url() . 'order-received/' . $_GET['pp_action'];
+                $received_url = $checkout_url . "/?key=" . $key;
                 //redirect to the checkout page
-                echo "<script>window.location='$received_url'</script>";
-              
+                $this->redirect_to($received_url);
             }
         }
     }
