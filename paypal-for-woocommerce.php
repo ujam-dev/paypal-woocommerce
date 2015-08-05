@@ -418,6 +418,21 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
                 <div class="angelleye_button_single">
                 <?php
                 $_product = wc_get_product($post->ID);
+             	global $woocommerce;
+               $issold = get_post_meta($post->ID, '_sold_individually', TRUE );
+               foreach($woocommerce->cart->get_cart() as $cart_item_key => $values ) {
+				$_product = $values['data'];
+	
+				if( get_the_ID() == $post->ID ) {
+					$in_cart = 'true';
+				}
+               }
+               if (isset($issold) && !empty($issold) && $issold == 'yes' && $in_cart =='true' ) {
+               	$add_to_cart_action = esc_url(add_query_arg('pp_action', 'expresscheckout', add_query_arg('wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url('/'))));
+               }else {
+               	$add_to_cart_action = esc_url(add_query_arg( 'express_checkout', '1'));
+               }
+               
                 $hide = '';
                 if($_product->product_type == 'variation' ||
                     $_product->is_type('external') ||
@@ -436,22 +451,25 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
                         } else {
                             $button_text = __( 'Proceed to Checkout', 'woocommerce' );
                         }
-                        $add_to_cart_action = esc_url(add_query_arg( 'express_checkout', '1'));
+                        //$add_to_cart_action = esc_url(add_query_arg( 'express_checkout', '1'));
+                       	
                         echo '<div id="paypal_ec_button_product">';
                         echo '<input data-action="'.$add_to_cart_action.'" type="submit" style="float:left;margin-left:10px;',$hide,'" class="single_variation_wrap_angelleye paypal_checkout_button button alt" name="express_checkout"  onclick="',"jQuery('form.cart').attr('action','",$add_to_cart_action,"');jQuery('form.cart').submit();",'" value="' .$button_text .'"/>';
                         echo '</div>';
                         echo '<div class="clear"></div>';
                         break;
                     case "paypalimage":
-                        $add_to_cart_action = esc_url(add_query_arg( 'express_checkout', '1'));
-                        $button_img =  "https://www.paypal.com/".WC_Gateway_PayPal_Express_AngellEYE::get_button_locale_code()."/i/btn/btn_xpressCheckout.gif";
+                     //   $add_to_cart_action = esc_url(add_query_arg( 'express_checkout', '1'));
+ 					//	$add_to_cart_action = esc_url(add_query_arg('pp_action', 'expresscheckout', add_query_arg('wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url('/'))));
+                     $button_img =  "https://www.paypal.com/".WC_Gateway_PayPal_Express_AngellEYE::get_button_locale_code()."/i/btn/btn_xpressCheckout.gif";
                         echo '<div id="paypal_ec_button_product">';
                         echo '<input data-action="'.$add_to_cart_action.'" type="image" src="',$button_img,'" style="float:left;margin-left:10px;',$hide,'" class="single_variation_wrap_angelleye" name="express_checkout" value="' . __('Pay with PayPal', 'paypal-for-woocommerce') .'"/>';
                         echo '</div>';
                         echo '<div class="clear"></div>';
                         break;
                     case "customimage":
-                        $add_to_cart_action = esc_url(add_query_arg( 'express_checkout', '1'));
+                        //$add_to_cart_action = esc_url(add_query_arg( 'express_checkout', '1'));
+                    //     $add_to_cart_action = esc_url(add_query_arg('pp_action', 'expresscheckout', add_query_arg('wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url('/'))));
                         $button_img = $pp_settings['pp_button_type_my_custom'];
                         echo '<div id="paypal_ec_button_product">';
                         echo '<input data-action="'.$add_to_cart_action.'" type="image" src="',$button_img,'" style="float:left;margin-left:10px;',$hide,'" class="single_variation_wrap_angelleye" name="express_checkout" value="' . __('Pay with PayPal', 'paypal-for-woocommerce') .'"/>';
