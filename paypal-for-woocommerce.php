@@ -427,7 +427,7 @@ if(!class_exists('AngellEYE_Gateway_Paypal')){
 					$in_cart = 'true';
 				}
                }
-               if (isset($issold) && !empty($issold) && $issold == 'yes' && $in_cart =='true' ) {
+               if ((isset($issold) && !empty($issold) && $issold == 'yes') && (isset($in_cart) && !empty($in_cart) && $in_cart =='true' )) {
                	$add_to_cart_action = esc_url(add_query_arg('pp_action', 'expresscheckout', add_query_arg('wc-api', 'WC_Gateway_PayPal_Express_AngellEYE', home_url('/'))));
                }else {
                	$add_to_cart_action = esc_url(add_query_arg( 'express_checkout', '1'));
