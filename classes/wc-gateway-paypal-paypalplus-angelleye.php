@@ -811,7 +811,8 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
             }
             if ($result->state == "approved") { //if state = approved continue..
                 global $wpdb;
-
+				$this->log->add('paypal_plus', sprintf(__('Response: %s', 'paypal-for-woocommerce'), print_r($result,true)));
+				
                 $my_post = array(
                     'ID' => $_GET['pp_action'],
                     'post_status' => 'wc-processing',);
@@ -844,6 +845,7 @@ class WC_Gateway_PayPal_Plus_AngellEYE extends WC_Payment_Gateway {
                 global $woocommerce;
                 $checkout_url = $woocommerce->cart->get_checkout_url() . 'order-received/' . $_GET['pp_action'];
                 $received_url = $checkout_url . "/?key=" . $key;
+                
                 //redirect to the checkout page
                 $this->redirect_to($received_url);
             }
