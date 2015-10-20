@@ -734,17 +734,8 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 
 				$lineitems_prepare = $this->prepare_line_items($order);
 				$lineitems = $_SESSION['line_item'];
-				//$paymentAmount    = WC()->cart->get_total();
-				$order_obj = $order->get_order_item_totals();
 
-				$current_currency = get_woocommerce_currency_symbol(get_woocommerce_currency());
-
-				$paymentAmount_amt = strip_tags($order_obj['order_total']['value']);
-
-				$payment_exp_ary = explode(';', $paymentAmount_amt);
-				$paymentAmount_amt_final_ec = str_replace($current_currency, '', $paymentAmount_amt);
-				$paymentAmount_amt_final = str_replace(',', '', $paymentAmount_amt_final_ec);
-				$paymentAmount = round($paymentAmount_amt_final, 2);
+                $paymentAmount = $order->order_total;
 
 				if (isset($order->order_shipping_tax) && !empty($order->order_shipping_tax)) {
 					update_post_meta($order_id,'shipping_taxamt_own',$order->order_shipping_tax);
@@ -1593,24 +1584,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 		/*
 		* Get tax amount.
 		*/
-
-
-		/*         * ************************ Tax amount MD****************************************** */
-
-
-		foreach ($order->get_tax_totals() as $code => $tax) {
-			$tax_string_array[] = $tax->formatted_amount;
-		}
-
-		$current_currency = get_woocommerce_currency_symbol(get_woocommerce_currency());
-		if (isset($tax_string_array) && !empty($tax_string_array)) {
-			$striped_amt = strip_tags($tax_string_array[0]);
-			$tot_tax = str_replace($current_currency, '', $striped_amt);
-		}
-
-		/*         * ************************ Tax amount MD*********************** */
-
-
+        $tot_tax = $order->order_tax;
 
 		if (get_option('woocommerce_prices_include_tax') == 'yes') {
 			$shipping = $order->get_total_shipping(); //+ $order->order_shipping_tax;
@@ -2100,13 +2074,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 		$order_items_own = array();
 
 		$final_order_total = $order->get_order_item_totals();
-
-		$current_currency = get_woocommerce_currency_symbol(get_woocommerce_currency());
-
-		$final_order_total_amt_strip_ec = strip_tags($final_order_total['order_total']['value']);
-		$final_order_total_amt_strip = str_replace(',', '', $final_order_total_amt_strip_ec);
-		$final_order_total_amt = str_replace($current_currency, '', $final_order_total_amt_strip);
-
+        $final_order_total_amt = $order->order_total;
 
 		$Payment = array(
 		'amt' => number_format($final_order_total_amt, 2, '.', ''), // Required.  The total cost of the transaction to the customer.  If shipping cost and tax charges are known, include them in this value.  If not, this value should be the current sub-total of the order.
@@ -2299,20 +2267,7 @@ class WC_Gateway_PayPal_Express_AngellEYE extends WC_Payment_Gateway {
 			/*
 			* Set shipping and tax values.
 			*/
-			/*             * *****************************MD******************************** */
-
-			foreach ($order->get_tax_totals() as $code => $tax) {
-				$tax_string_array[] = $tax->formatted_amount;
-			}
-
-			$current_currency = get_woocommerce_currency_symbol(get_woocommerce_currency());
-			if (isset($tax_string_array) && !empty($tax_string_array)) {
-				$striped_amt = strip_tags($tax_string_array[0]);
-				if (isset($striped_amt) && !empty($striped_amt)) {
-					$tot_tax = str_replace($current_currency, '', $striped_amt);
-				}
-			}
-			/*             * ****************************MD******************************** */
+            $tot_tax = $order->order_tax;
 
 			if (get_option('woocommerce_prices_include_tax') == 'yes') {
 				$shipping = $order->get_total_shipping(); //+ $order->get_shipping_tax();
